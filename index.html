@@ -464,7 +464,7 @@ async function loadTargets(userId) {
   const period = currentPeriodBounds();
   document.getElementById('period-label').textContent = `بازه‌ی جاری: ${period.startLabel} تا ${period.endLabel}`;
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from(TABLE_TARGETS)
     .select('*')
     .eq('user_id', userId)
@@ -496,7 +496,7 @@ async function loadTargets(userId) {
 
 async function loadBugs(userId) {
   const container = document.getElementById('bugs-list');
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from(TABLE_BUGS)
     .select('*')
     .eq('user_id', userId)
