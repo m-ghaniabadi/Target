@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>داشبورد کارشناسان</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  /* =========================================================
+     پیکربندی — این سه مقدار را با اطلاعات پروژه Supabase خودتان جایگزین کنید
+     ========================================================= */
+  :root {
+    --bg: #F5F4F0;
+    --surface: #FFFFFF;
+    --ink: #1C2321;
+    --ink-soft: #5B6460;
+    --ink-faint: #93998F;
+    --line: #E2E0D8;
+    --accent: #0F6E56;
+    --accent-soft: #E1F5EE;
+    --accent-strong: #085041;
+    --danger: #A32D2D;
+    --danger-soft: #FAECE7;
+    --radius: 12px;
+    --font: 'Vazirmatn', Tahoma, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+  .center-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  /* ---------- صفحه ورود ---------- */
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 380px;
+  }
+  .login-mark {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--accent);
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .login-mark::after {
+    content: "";
+    position: absolute;
+    inset: 11px;
+    border-radius: 3px;
+    background: var(--accent-soft);
+  }
+  .login-card h1 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 6px;
+  }
+  .login-card p.sub {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin: 0 0 28px;
+  }
+  label {
+    display: block;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .field { margin-bottom: 18px; }
+  input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 11px 13px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    font-family: var(--font);
+    font-size: 14px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color .15s;
+  }
+  input[type="text"]:focus, input[type="password"]:focus {
+    border-color: var(--accent);
+  }
+  button {
+    font-family: var(--font);
+    cursor: pointer;
+  }
+  .btn-primary {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 6px;
+    transition: background .15s;
+  }
+  .btn-primary:hover { background: var(--accent-strong); }
+  .btn-primary:disabled { background: var(--ink-faint); cursor: default; }
+  .error-msg {
+    background: var(--danger-soft);
+    color: var(--danger);
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    display: none;
+  }
+
+  /* ---------- داشبورد ---------- */
+  #app-screen { display: none; }
+  header.topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    padding: 16px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand .mark {
+    width: 26px; height: 26px; border-radius: 7px; background: var(--accent);
+  }
+  .brand span { font-weight: 600; font-size: 15px; }
+  .who { font-size: 13px; color: var(--ink-soft); display: flex; align-items: center; gap: 14px; }
+  .logout-link {
+    background: none; border: none; color: var(--ink-soft);
+    font-size: 13px; text-decoration: underline; padding: 0;
+  }
+  .logout-link:hover { color: var(--danger); }
+
+  main {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 28px 20px 60px;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .tab-btn {
+    background: none; border: none;
+    padding: 10px 4px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    font-family: var(--font);
+    border-bottom: 2px solid transparent;
+    margin-left: 24px;
+  }
+  .tab-btn.active { color: var(--accent-strong); border-bottom-color: var(--accent); font-weight: 600; }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .period-label {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+
+  .summary-row {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+  }
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    flex: 1;
+    min-width: 140px;
+  }
+  .summary-card .label { font-size: 12px; color: var(--ink-soft); margin-bottom: 6px; }
+  .summary-card .value { font-size: 24px; font-weight: 700; }
+  .summary-card.accent .value { color: var(--accent-strong); }
+
+  .list-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .row-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+    gap: 12px;
+  }
+  .row-item:last-child { border-bottom: none; }
+  .row-date { font-size: 13px; color: var(--ink-soft); min-width: 92px; }
+  .row-main { flex: 1; font-size: 14px; }
+  .row-badge {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent-strong);
+    background: var(--accent-soft);
+    padding: 3px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+
+  .bug-item { padding: 16px 18px; border-bottom: 1px solid var(--line); }
+  .bug-item:last-child { border-bottom: none; }
+  .bug-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; gap: 10px; flex-wrap: wrap; }
+  .bug-kind { font-size: 14px; font-weight: 600; }
+  .bug-date { font-size: 12px; color: var(--ink-soft); }
+  .bug-order { font-size: 13px; color: var(--ink-soft); margin-bottom: 6px; }
+  .bug-desc { font-size: 13px; color: var(--ink); line-height: 1.8; margin-bottom: 8px; }
+  .bug-price {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--danger);
+    background: var(--danger-soft);
+    padding: 3px 10px;
+    border-radius: 6px;
+  }
+
+  .empty-state {
+    padding: 48px 20px;
+    text-align: center;
+    color: var(--ink-faint);
+    font-size: 14px;
+  }
+  .loading-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+
+<!-- صفحه ورود -->
+<div class="center-screen" id="login-screen">
+  <div class="login-card">
+    <div class="login-mark"></div>
+    <h1>ورود به داشبورد</h1>
+    <p class="sub">با نام کاربری و رمز عبورتان وارد شوید</p>
+    <div class="error-msg" id="login-error"></div>
+    <form id="login-form">
+      <div class="field">
+        <label for="username">نام کاربری</label>
+        <input type="text" id="username" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="password">رمز عبور</label>
+        <input type="password" id="password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn-primary" id="login-btn">ورود</button>
+    </form>
+  </div>
+</div>
+
+<!-- صفحه اصلی -->
+<div id="app-screen">
+  <header class="topbar">
+    <div class="brand"><div class="mark"></div><span>داشبورد کارشناسان</span></div>
+    <div class="who">
+      <span id="user-label"></span>
+      <button class="logout-link" id="logout-btn">خروج</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="targets">تارگت روزانه</button>
+      <button class="tab-btn" data-tab="bugs">خطاها</button>
+    </div>
+
+    <div class="panel active" id="panel-targets">
+      <div class="period-label" id="period-label"></div>
+      <div class="list-card" id="targets-list">
+        <div class="loading-state">در حال بارگذاری...</div>
+      </div>
+      <div class="summary-row">
+        <div class="summary-card accent">
+          <div class="label">مجموع تارگت این بازه</div>
+          <div class="value" id="period-total">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-bugs">
+      <div class="list-card" id="bugs-list">
+        <div class="loading-state">در حال بارگذاری...</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+/* =========================================================
+   ۱) اطلاعات پروژه Supabase خودتان را اینجا وارد کنید
+   ========================================================= */
+const SUPABASE_URL = "https://uqsjikbaiduwpbjugdjv.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_YMCX6Z78k884o14B8VTWPQ_y8hfCG8i";
+
+/* دامنه‌ی داخلی برای تبدیل «نام کاربری» به ایمیل Supabase Auth
+   مثلا اگر کاربر m.ghaniabadi را وارد کند، به این ایمیل تبدیل می‌شود:
+   m.ghaniabadi@internal.yourcompany.com                        */
+const USERNAME_EMAIL_DOMAIN = "bimename.com";
+
+/* نام جدول‌ها — اگر در Supabase اسم دیگری گذاشتید همینجا تغییر دهید */
+const TABLE_TARGETS = "daily_targets";
+const TABLE_BUGS = "bug_reports";
+/* ========================================================= */
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const loginScreen = document.getElementById('login-screen');
+const appScreen = document.getElementById('app-screen');
+const loginForm = document.getElementById('login-form');
+const loginError = document.getElementById('login-error');
+const loginBtn = document.getElementById('login-btn');
+
+function usernameToEmail(u) {
+  return u.trim() + '@' + USERNAME_EMAIL_DOMAIN;
+}
+
+function showError(msg) {
+  loginError.textContent = msg;
+  loginError.style.display = 'block';
+}
+
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  loginError.style.display = 'none';
+  loginBtn.disabled = true;
+  loginBtn.textContent = 'در حال ورود...';
+
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: usernameToEmail(username),
+    password
+  });
+
+  loginBtn.disabled = false;
+  loginBtn.textContent = 'ورود';
+
+  if (error) {
+    showError('نام کاربری یا رمز عبور اشتباه است');
+    return;
+  }
+  enterApp(data.user);
+});
+
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  await supabase.auth.signOut();
+  location.reload();
+});
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+function toJalaliDisplay(jalaliText) {
+  // تاریخ‌ها از قبل به‌صورت شمسی (مثلا 1405/05/24) در دیتابیس ذخیره شده‌اند، نیازی به تبدیل نیست
+  return jalaliText || '—';
+}
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+
+// همان الگوریتم تبدیل میلادی به شمسی که در ورک‌فلوی n8n استفاده شده
+function gregorianToJalali(gy, gm, gd) {
+  const g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+  let jy;
+  if (gy > 1600) { jy = 979; gy -= 1600; } else { jy = 0; gy -= 621; }
+  const gy2 = (gm > 2) ? (gy + 1) : gy;
+  let days = (365 * gy) + (Math.floor((gy2 + 3) / 4)) - (Math.floor((gy2 + 99) / 100)) + (Math.floor((gy2 + 399) / 400)) - 80 + gd + g_d_m[gm - 1];
+  jy += 33 * Math.floor(days / 12053);
+  days %= 12053;
+  jy += 4 * Math.floor(days / 1461);
+  days %= 1461;
+  if (days > 365) {
+    jy += Math.floor((days - 1) / 365);
+    days = (days - 1) % 365;
+  }
+  let jm, jd;
+  if (days < 186) {
+    jm = 1 + Math.floor(days / 31);
+    jd = 1 + (days % 31);
+  } else {
+    jm = 7 + Math.floor((days - 186) / 30);
+    jd = 1 + ((days - 186) % 30);
+  }
+  return [jy, jm, jd];
+}
+
+function tehranTodayJalali() {
+  const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tehran', year: 'numeric', month: '2-digit', day: '2-digit' });
+  const [gy, gm, gd] = fmt.format(new Date()).split('-').map(Number);
+  return gregorianToJalali(gy, gm, gd);
+}
+
+// بازه‌ی جاری: از بیست‌وسوم یک ماه شمسی تا بیست‌ودوم ماه بعد
+// (همان منطق محاسبه‌ی بازه‌ای که در ورک‌فلوی «ارسال تارگت تیکت + پاداش» استفاده شده)
+function currentPeriodBounds() {
+  const [jy, jm, jd] = tehranTodayJalali();
+  let startJy, startJm, endJy, endJm;
+  if (jd >= 23) {
+    startJy = jy; startJm = jm;
+    endJy = (jm < 12) ? jy : jy + 1;
+    endJm = (jm < 12) ? jm + 1 : 1;
+  } else {
+    startJy = (jm > 1) ? jy : jy - 1;
+    startJm = (jm > 1) ? jm - 1 : 12;
+    endJy = jy; endJm = jm;
+  }
+  return {
+    startSort: startJy * 10000 + startJm * 100 + 23,
+    endSort: endJy * 10000 + endJm * 100 + 22,
+    startLabel: `${startJy}/${pad2(startJm)}/23`,
+    endLabel: `${endJy}/${pad2(endJm)}/22`
+  };
+}
+
+async function enterApp(user) {
+  loginScreen.style.display = 'none';
+  appScreen.style.display = 'block';
+  document.getElementById('user-label').textContent = user.email.split('@')[0];
+
+  loadTargets(user.id);
+  loadBugs(user.id);
+}
+
+async function loadTargets(userId) {
+  const container = document.getElementById('targets-list');
+  const period = currentPeriodBounds();
+  document.getElementById('period-label').textContent = `بازه‌ی جاری: ${period.startLabel} تا ${period.endLabel}`;
+
+  const { data, error } = await supabase
+    .from(TABLE_TARGETS)
+    .select('*')
+    .eq('user_id', userId)
+    .gte('report_date_sort', period.startSort)
+    .lte('report_date_sort', period.endSort)
+    .order('report_date_sort', { ascending: true });
+
+  if (error) {
+    container.innerHTML = `<div class="empty-state">خطا در دریافت اطلاعات: ${error.message}</div>`;
+    document.getElementById('period-total').textContent = '—';
+    return;
+  }
+  if (!data || data.length === 0) {
+    container.innerHTML = '<div class="empty-state">هنوز تارگتی برای این بازه ثبت نشده است</div>';
+    document.getElementById('period-total').textContent = '۰';
+    return;
+  }
+
+  const periodTotal = data.reduce((sum, r) => sum + (Number(r.target_count) || 0), 0);
+  document.getElementById('period-total').textContent = periodTotal.toLocaleString('fa-IR');
+
+  container.innerHTML = data.map(r => `
+    <div class="row-item">
+      <div class="row-date">${toJalaliDisplay(r.report_date_jalali)}</div>
+      <div class="row-badge">${r.target_count ?? '—'}</div>
+    </div>
+  `).join('');
+}
+
+async function loadBugs(userId) {
+  const container = document.getElementById('bugs-list');
+  const { data, error } = await supabase
+    .from(TABLE_BUGS)
+    .select('*')
+    .eq('user_id', userId)
+    .order('check_date_sort', { ascending: false });
+
+  if (error) {
+    container.innerHTML = `<div class="empty-state">خطا در دریافت اطلاعات: ${error.message}</div>`;
+    return;
+  }
+  if (!data || data.length === 0) {
+    container.innerHTML = '<div class="empty-state">خطایی برای شما ثبت نشده است</div>';
+    return;
+  }
+
+  container.innerHTML = data.map(r => `
+    <div class="bug-item">
+      <div class="bug-top">
+        <span class="bug-kind">${r.kind_of_bug ?? ''}</span>
+        <span class="bug-date">${toJalaliDisplay(r.check_date_jalali)}</span>
+      </div>
+      <div class="bug-order">شماره سفارش: ${r.order_number ?? '—'}</div>
+      ${r.description ? `<div class="bug-desc">${r.description}</div>` : ''}
+      ${r.price_rial ? `<span class="bug-price">${Number(r.price_rial).toLocaleString('en-US')} ریال</span>` : ''}
+    </div>
+  `).join('');
+}
+
+// اگر کاربر قبلاً لاگین کرده و نشست (session) هنوز معتبر است، مستقیم وارد داشبورد شود
+(async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) enterApp(session.user);
+})();
+</script>
+
+</body>
+</html>
