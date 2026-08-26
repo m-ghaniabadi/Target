@@ -334,7 +334,7 @@ const TABLE_TARGETS = "daily_targets";
 const TABLE_BUGS = "bug_reports";
 /* ========================================================= */
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const loginScreen = document.getElementById('login-screen');
 const appScreen = document.getElementById('app-screen');
@@ -360,7 +360,7 @@ loginForm.addEventListener('submit', async (e) => {
   const username = document.getElementById('username').value;
   const password = document.getElementById('password').value;
 
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
     email: usernameToEmail(username),
     password
   });
@@ -376,7 +376,7 @@ loginForm.addEventListener('submit', async (e) => {
 });
 
 document.getElementById('logout-btn').addEventListener('click', async () => {
-  await supabase.auth.signOut();
+  await supabaseClient.auth.signOut();
   location.reload();
 });
 
@@ -526,7 +526,7 @@ async function loadBugs(userId) {
 
 // اگر کاربر قبلاً لاگین کرده و نشست (session) هنوز معتبر است، مستقیم وارد داشبورد شود
 (async () => {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabaseClient.auth.getSession();
   if (session) enterApp(session.user);
 })();
 </script>
