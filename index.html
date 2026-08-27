@@ -324,6 +324,93 @@
     color: var(--ink-soft);
     font-size: 14px;
   }
+
+  /* ---------- ویجت گلدون / آب دادن ---------- */
+  .plant-widget {
+    position: fixed;
+    left: 22px;
+    bottom: 26px;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 132px;
+    background: rgba(255,255,255,.88);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 14px 14px 16px;
+    box-shadow: var(--shadow-float);
+  }
+  .plant-widget .plant-title {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    text-align: center;
+  }
+  .plant-stage-wrap {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  .plant-svg { width: 96px; height: 132px; overflow: visible; }
+  .plant-svg.growing #plant-group { animation: plant-pulse .7s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes plant-pulse {
+    0% { transform: scaleY(1); }
+    40% { transform: scaleY(1.12); }
+    100% { transform: scaleY(1); }
+  }
+  #plant-group { transform-origin: 80px 190px; }
+  .plant-part {
+    opacity: 0;
+    transform: scale(.3);
+    transform-origin: center bottom;
+    transition: opacity .5s ease, transform .5s cubic-bezier(.34,1.56,.64,1);
+  }
+  .plant-part.visible { opacity: 1; transform: scale(1); }
+
+  .cup-wrap { width: 42px; height: 50px; }
+  .cup-svg { width: 100%; height: 100%; overflow: visible; }
+  #cup-water {
+    transition: y .5s ease, height .5s ease, opacity .4s ease;
+  }
+  #cup-water.full { filter: drop-shadow(0 0 4px rgba(23,169,255,.55)); }
+  .cup-svg.pour #cup-water { transition: y .35s ease-in, height .35s ease-in; }
+
+  .water-btn {
+    width: 100%;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 9px 4px;
+    font-family: var(--font);
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+    box-shadow: 0 10px 20px -10px rgba(22,86,245,.55);
+    transition: transform .15s, filter .15s, opacity .15s;
+  }
+  .water-btn:hover:not(:disabled) { filter: brightness(1.06); transform: translateY(-1px); }
+  .water-btn:disabled {
+    background: var(--ink-faint);
+    box-shadow: none;
+    cursor: default;
+    opacity: .65;
+  }
+  .water-btn svg { width: 14px; height: 14px; }
+
+  @media (max-width: 760px) {
+    .plant-widget { left: 10px; bottom: 10px; width: 108px; padding: 10px 10px 12px; gap: 7px; }
+    .plant-svg { width: 76px; height: 104px; }
+    .cup-wrap { width: 34px; height: 40px; }
+    .water-btn { font-size: 11px; padding: 7px 4px; }
+  }
 </style>
 </head>
 <body>
@@ -367,6 +454,68 @@
       </button>
     </div>
   </header>
+
+  <!-- ویجت گلدون: به‌ازای هر روزی که تارگت خورده، یک لیوان آب جمع می‌شود -->
+  <div class="plant-widget" id="plant-widget" style="display:none;">
+    <div class="plant-title">گلدون تارگت</div>
+    <div class="plant-stage-wrap">
+      <svg class="plant-svg" id="plant-svg" viewBox="0 0 160 220">
+        <!-- سایه و گلدان -->
+        <ellipse cx="80" cy="205" rx="46" ry="7" fill="#000" opacity=".06"/>
+        <path d="M38 188 L122 188 L110 218 L50 218 Z" fill="#C77B4B"/>
+        <rect x="33" y="176" width="94" height="16" rx="5" fill="#A85D33"/>
+        <ellipse cx="80" cy="178" rx="45" ry="7" fill="#5B4636"/>
+
+        <g id="plant-group">
+          <!-- ساقه -->
+          <line id="plant-stem" x1="80" y1="178" x2="80" y2="170" stroke="#2F8F5B" stroke-width="6" stroke-linecap="round"/>
+
+          <!-- برگ‌ها (به‌مرور نمایان می‌شوند) -->
+          <g class="plant-part" data-stage="1">
+            <ellipse cx="80" cy="168" rx="6" ry="4" fill="#3DAA6B"/>
+          </g>
+          <g class="plant-part" data-stage="2">
+            <path d="M80 150 C60 148 55 130 62 118 C78 128 82 142 80 150 Z" fill="#3DAA6B"/>
+          </g>
+          <g class="plant-part" data-stage="3">
+            <path d="M80 150 C100 148 105 130 98 118 C82 128 78 142 80 150 Z" fill="#41B473"/>
+          </g>
+          <g class="plant-part" data-stage="4">
+            <path d="M80 118 C58 112 50 92 60 78 C80 88 86 104 80 118 Z" fill="#3DAA6B"/>
+          </g>
+          <g class="plant-part" data-stage="5">
+            <path d="M80 118 C102 112 110 92 100 78 C80 88 74 104 80 118 Z" fill="#41B473"/>
+          </g>
+
+          <!-- شکوفه‌ها (مرحله‌ی کامل) -->
+          <g class="plant-part" data-stage="6" id="flowers">
+            <circle cx="80" cy="70" r="7" fill="#FFC94D"/>
+            <circle cx="66" cy="80" r="6" fill="#FF8FA3"/>
+            <circle cx="94" cy="80" r="6" fill="#FF8FA3"/>
+            <circle cx="80" cy="90" r="6" fill="#FFA8B8"/>
+            <circle cx="80" cy="79" r="4.5" fill="#FFE08A"/>
+          </g>
+        </g>
+      </svg>
+    </div>
+
+    <div class="cup-wrap">
+      <svg class="cup-svg" id="cup-svg" viewBox="0 0 60 70">
+        <defs>
+          <clipPath id="cup-clip">
+            <path d="M12 8 H48 L42 62 Q42 66 38 66 H22 Q18 66 18 62 Z"/>
+          </clipPath>
+        </defs>
+        <rect id="cup-water" x="10" y="66" width="40" height="0" fill="#17A9FF" clip-path="url(#cup-clip)"/>
+        <path d="M12 8 H48 L42 62 Q42 66 38 66 H22 Q18 66 18 62 Z" fill="none" stroke="#5A6B8C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <button class="water-btn" id="water-btn" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c4 5 7 8.5 7 12a7 7 0 0 1-14 0c0-3.5 3-7 7-12Z"/></svg>
+      آب دادن
+    </button>
+  </div>
 
   <main>
     <div class="tabs">
@@ -556,6 +705,9 @@ async function enterApp(user) {
   appScreen.style.display = 'block';
   document.getElementById('user-label').textContent = user.email.split('@')[0];
 
+  currentUserId = user.id;
+  document.getElementById('plant-widget').style.display = 'flex';
+
   loadTargets(user.id);
   loadBugs(user.id);
 }
@@ -573,14 +725,18 @@ async function loadTargets(userId) {
     .lte('report_date_sort', period.endSort)
     .order('report_date_sort', { ascending: true });
 
+  currentPeriodKey = period.startLabel;
+
   if (error) {
     container.innerHTML = `<div class="empty-state">خطا در دریافت اطلاعات: ${error.message}</div>`;
     document.getElementById('period-total').textContent = '—';
+    updatePlantWidget(0);
     return;
   }
   if (!data || data.length === 0) {
     container.innerHTML = '<div class="empty-state">هنوز تارگتی برای این بازه ثبت نشده است</div>';
     document.getElementById('period-total').textContent = '۰';
+    updatePlantWidget(0);
     return;
   }
 
@@ -593,7 +749,120 @@ async function loadTargets(userId) {
       <div class="row-badge">${r.target_count != null ? formatNumber(r.target_count) : '—'}</div>
     </div>
   `).join('');
+
+  // محاسبه‌ی تعداد لیوان آب کسب‌شده در این بازه بر اساس تارگت هر روز
+  const earnedCups = data.reduce((sum, r) => sum + cupsForTarget(Number(r.target_count) || 0), 0);
+  updatePlantWidget(earnedCups);
 }
+
+/* =========================================================
+   ویجت گلدون / آب دادن
+   - هیچ داده‌ای در بک‌اند ذخیره نمی‌شود، فقط از localStorage استفاده می‌شود
+   - به ازای هر روزی که تارگت 30+ باشد: ۱ لیوان
+   - به ازای هر روزی که تارگت 20 تا 30 باشد: ۰.۵ لیوان
+   - به ازای هر روزی که تارگت 10 تا 20 باشد: ۰.۲۵ لیوان
+   ========================================================= */
+let currentUserId = null;
+let currentPeriodKey = null;
+let plantState = { usedCups: 0, stage: 0, availableCups: 0, earnedCups: 0 };
+const PLANT_MAX_STAGE = 6;
+
+function cupsForTarget(t) {
+  if (t >= 30) return 1;
+  if (t >= 20) return 0.5;
+  if (t >= 10) return 0.25;
+  return 0;
+}
+
+function plantStorageKey() {
+  return `plant_state_${currentUserId || 'guest'}_${currentPeriodKey || 'na'}`;
+}
+
+function loadPlantSavedState() {
+  try {
+    const raw = localStorage.getItem(plantStorageKey());
+    if (!raw) return { usedCups: 0, stage: 0 };
+    const parsed = JSON.parse(raw);
+    return {
+      usedCups: Number(parsed.usedCups) || 0,
+      stage: Math.min(Number(parsed.stage) || 0, PLANT_MAX_STAGE)
+    };
+  } catch (e) {
+    return { usedCups: 0, stage: 0 };
+  }
+}
+
+function savePlantState() {
+  try {
+    localStorage.setItem(plantStorageKey(), JSON.stringify({
+      usedCups: plantState.usedCups,
+      stage: plantState.stage
+    }));
+  } catch (e) { /* اگر localStorage در دسترس نبود، مشکلی پیش نمی‌آید */ }
+}
+
+function updateCupVisual(fraction) {
+  const cupWater = document.getElementById('cup-water');
+  const maxFillHeight = 58; // از y=8 تا y=66
+  const fillHeight = maxFillHeight * Math.max(0, Math.min(1, fraction));
+  cupWater.setAttribute('y', 66 - fillHeight);
+  cupWater.setAttribute('height', fillHeight);
+  cupWater.classList.toggle('full', fraction >= 1);
+}
+
+function updatePlantStageVisual(stage) {
+  document.querySelectorAll('.plant-part').forEach(el => {
+    const req = Number(el.dataset.stage);
+    el.classList.toggle('visible', stage >= req);
+  });
+  const stemLen = 8 + (stage / PLANT_MAX_STAGE) * 110;
+  document.getElementById('plant-stem').setAttribute('y2', 178 - stemLen);
+}
+
+function updatePlantWidget(earnedCups) {
+  const saved = loadPlantSavedState();
+  const availableCups = Math.max(0, earnedCups - saved.usedCups);
+
+  plantState = {
+    usedCups: saved.usedCups,
+    stage: saved.stage,
+    availableCups,
+    earnedCups
+  };
+
+  updateCupVisual(Math.min(availableCups, 1));
+  updatePlantStageVisual(saved.stage);
+
+  const btn = document.getElementById('water-btn');
+  btn.disabled = availableCups < 1;
+}
+
+document.getElementById('water-btn').addEventListener('click', () => {
+  if (plantState.availableCups < 1) return;
+
+  const cupSvg = document.getElementById('cup-svg');
+  const plantSvg = document.getElementById('plant-svg');
+
+  // خالی شدن لیوان
+  cupSvg.classList.add('pour');
+  updateCupVisual(0);
+
+  plantState.usedCups += 1;
+  plantState.stage = Math.min(plantState.stage + 1, PLANT_MAX_STAGE);
+  plantState.availableCups = Math.max(0, plantState.earnedCups - plantState.usedCups);
+  savePlantState();
+
+  // رشد گیاه
+  updatePlantStageVisual(plantState.stage);
+  plantSvg.classList.add('growing');
+  setTimeout(() => plantSvg.classList.remove('growing'), 700);
+
+  setTimeout(() => {
+    cupSvg.classList.remove('pour');
+    updateCupVisual(Math.min(plantState.availableCups, 1));
+    document.getElementById('water-btn').disabled = plantState.availableCups < 1;
+  }, 380);
+});
 
 async function loadBugs(userId) {
   const container = document.getElementById('bugs-list');
