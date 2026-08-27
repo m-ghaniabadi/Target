@@ -283,8 +283,9 @@
     inset: 0;
     background: radial-gradient(140px 140px at 90% 0%, rgba(255,255,255,.25), transparent 70%);
   }
-  .summary-card .label { font-size: 12.5px; color: rgba(255,255,255,.85); margin-bottom: 8px; font-weight: 500; }
-  .summary-card .value { font-size: 30px; font-weight: 800; color: #fff; letter-spacing: -.01em; position: relative; }
+  .summary-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .summary-card .label { font-size: 12.5px; color: rgba(255,255,255,.85); font-weight: 500; position: relative; }
+  .summary-card .value { font-size: 40px; font-weight: 800; color: #fff; letter-spacing: -.01em; position: relative; }
 
   .list-card {
     background: var(--surface);
@@ -773,7 +774,8 @@ function toJalaliDisplay(jalaliText) {
 function formatNumber(n) {
   const num = Number(n) || 0;
   const rounded = Math.round(num * 10) / 10;
-  return rounded.toLocaleString('fa-IR', { maximumFractionDigits: 1, minimumFractionDigits: 0 });
+  // به‌جای جداکننده‌ی اعشاری پیش‌فرض فارسی (٫) از نقطه استفاده می‌شود
+  return rounded.toLocaleString('fa-IR', { maximumFractionDigits: 1, minimumFractionDigits: 0 }).replace('٫', '.');
 }
 
 function pad2(n) { return String(n).padStart(2, '0'); }
