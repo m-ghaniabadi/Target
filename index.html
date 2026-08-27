@@ -247,8 +247,19 @@
     margin-bottom: 16px;
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 7px;
   }
+  .period-last-update {
+    font-size: 11.5px;
+    color: var(--ink-faint);
+  }
+  .period-last-update::before {
+    content: "·";
+    margin-inline-end: 7px;
+    color: var(--ink-faint);
+  }
+  .period-last-update:empty { display: none; }
 
   .summary-row {
     display: flex;
@@ -645,7 +656,10 @@
     </div>
 
     <div class="panel active" id="panel-targets">
-      <div class="period-label" id="period-label"></div>
+      <div class="period-label">
+        <span id="period-label"></span>
+        <span class="period-last-update" id="period-last-update"></span>
+      </div>
       <div class="summary-row">
         <div class="summary-card">
           <div class="label">مجموع تارگت  </div>
@@ -830,10 +844,28 @@ async function enterApp(user) {
   loadBugs(user.id);
 }
 
+/* آخرین لحظه‌ای که ورک‌فلوی ارسال تارگت‌ها با موفقیت روی Supabase اجرا شده
+   (یک ردیف تکی در جدول app_meta که هر بار اجرای ورک‌فلو آپدیت می‌شه) */
+async function loadLastTargetsUpdate() {
+  const el = document.getElementById('period-last-update');
+  try {
+    const { data, error } = await supabaseClient
+      .from('app_meta')
+      .select('updated_label')
+      .eq('id', 1)
+      .maybeSingle();
+    if (error || !data) { el.textContent = ''; return; }
+    el.textContent = data.updated_label || '';
+  } catch (e) {
+    el.textContent = '';
+  }
+}
+
 async function loadTargets(userId) {
   const container = document.getElementById('targets-list');
   const period = currentPeriodBounds();
   document.getElementById('period-label').textContent = `بازه‌ی جاری: ${period.startLabel} تا ${period.endLabel}`;
+  loadLastTargetsUpdate();
 
   const { data, error } = await supabaseClient
     .from(TABLE_TARGETS)
