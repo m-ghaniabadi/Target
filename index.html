@@ -425,6 +425,15 @@ const appScreen = document.getElementById('app-screen');
 const loginForm = document.getElementById('login-form');
 const loginError = document.getElementById('login-error');
 const loginBtn = document.getElementById('login-btn');
+  // جلوگیری از تایپ یا پیست کردن فاصله در فیلدهای ورود
+function stripSpaces(el) {
+  el.addEventListener('input', () => {
+    const cleaned = el.value.replace(/\s+/g, '');
+    if (cleaned !== el.value) el.value = cleaned;
+  });
+}
+stripSpaces(document.getElementById('username'));
+stripSpaces(document.getElementById('password'));
 
 function usernameToEmail(u) {
   return u.trim() + '@' + USERNAME_EMAIL_DOMAIN;
