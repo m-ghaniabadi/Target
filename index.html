@@ -265,6 +265,10 @@
     box-shadow: 0 16px 34px -16px rgba(22,86,245,.5);
     position: relative;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
   }
   .summary-card::after {
     content: "";
@@ -272,7 +276,7 @@
     inset: 0;
     background: radial-gradient(140px 140px at 90% 0%, rgba(255,255,255,.25), transparent 70%);
   }
-  .summary-card .label { font-size: 12.5px; color: rgba(255,255,255,.85); margin-bottom: 8px; font-weight: 500; }
+  .summary-card .label { font-size: 16px; color: rgba(255,255,255,.9); margin-bottom: 0; font-weight: 700; position: relative; }
   .summary-card .value { font-size: 30px; font-weight: 800; color: #fff; letter-spacing: -.01em; position: relative; }
 
   .list-card {
@@ -1642,6 +1646,12 @@ function toJalaliDisplay(jalaliText) {
   return jalaliText || '—';
 }
 
+// فقط برای ردیف‌های لیست «تارگت روزانه»: به‌جای / بین بخش‌های تاریخ، از . استفاده می‌کند
+function toJalaliDisplayDotted(jalaliText) {
+  if (!jalaliText) return '—';
+  return String(jalaliText).replace(/\//g, '.');
+}
+
 // عدد را با حداکثر یک رقم اعشار، تمیز و بدون خطاهای اعشاری float نمایش می‌دهد
 // مثال: 66.79999999999998 -> «۶۶.۸»
 function formatNumber(n) {
@@ -1751,7 +1761,7 @@ async function loadTargets(userId) {
 
   container.innerHTML = data.map(r => `
     <div class="row-item">
-      <div class="row-date">${toJalaliDisplay(r.report_date_jalali)}</div>
+      <div class="row-date">${toJalaliDisplayDotted(r.report_date_jalali)}</div>
       <div class="row-badge">${r.target_count != null ? formatNumber(r.target_count) : '—'}</div>
     </div>
   `).join('');
