@@ -1646,18 +1646,12 @@ function toJalaliDisplay(jalaliText) {
   return jalaliText || '—';
 }
 
-// فقط برای ردیف‌های لیست «تارگت روزانه»: به‌جای / بین بخش‌های تاریخ، از . استفاده می‌کند
-function toJalaliDisplayDotted(jalaliText) {
-  if (!jalaliText) return '—';
-  return String(jalaliText).replace(/\//g, '.');
-}
-
 // عدد را با حداکثر یک رقم اعشار، تمیز و بدون خطاهای اعشاری float نمایش می‌دهد
-// مثال: 66.79999999999998 -> «۶۶.۸»
+// مثال: 66.79999999999998 -> «۶۶.۸» (جداکننده‌ی اعشار به‌جای ٫ فارسی، همون نقطه‌ی معمولیه)
 function formatNumber(n) {
   const num = Number(n) || 0;
   const rounded = Math.round(num * 10) / 10;
-  return rounded.toLocaleString('fa-IR', { maximumFractionDigits: 1, minimumFractionDigits: 0 });
+  return rounded.toLocaleString('fa-IR', { maximumFractionDigits: 1, minimumFractionDigits: 0 }).replace(/٫/g, '.');
 }
 
 function pad2(n) { return String(n).padStart(2, '0'); }
@@ -1761,7 +1755,7 @@ async function loadTargets(userId) {
 
   container.innerHTML = data.map(r => `
     <div class="row-item">
-      <div class="row-date">${toJalaliDisplayDotted(r.report_date_jalali)}</div>
+      <div class="row-date">${toJalaliDisplay(r.report_date_jalali)}</div>
       <div class="row-badge">${r.target_count != null ? formatNumber(r.target_count) : '—'}</div>
     </div>
   `).join('');
