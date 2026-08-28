@@ -439,6 +439,22 @@
     color: var(--ink-faint);
     margin: 14px 4px 6px;
   }
+  .team-bugs-search-wrap { margin-bottom: 14px; }
+  .team-bugs-search {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 14px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .team-bugs-search:focus { border-color: var(--accent); }
+  .team-bugs-search::placeholder { color: var(--ink-faint); }
   .team-details-inner .bug-item { padding: 12px 4px; }
   .team-details-inner .bug-item:hover { background: none; }
   .bug-agent { font-size: 13px; font-weight: 700; color: var(--accent-deep); margin-bottom: 4px; }
@@ -1685,6 +1701,9 @@
 
     <!-- نمای سرگروه: خطای تیم (لیست تخت همه‌ی خطاها به‌همراه یوزر بک‌آفیس کارشناس مربوطه) -->
     <div class="panel" id="panel-team-bugs">
+      <div class="team-bugs-search-wrap">
+        <input type="text" id="team-bugs-search" class="team-bugs-search" placeholder="جستجو بر اساس یوزر بک‌آفیس کارشناس...">
+      </div>
       <div class="list-card" id="team-bugs-list">
         <div class="loading-state">در حال بارگذاری...</div>
       </div>
@@ -2047,32 +2066,16 @@ async function loadTeamView(leaderId) {
   document.getElementById('team-period-total').textContent = formatNumber(teamTotal);
 
   // ---------- تب «خطای تیم»: لیست تخت همه‌ی خطاها به‌همراه backoffice_id کارشناس ----------
-  const teamBugsContainer = document.getElementById('team-bugs-list');
-  const allBugsFlat = [];
+  teamBugsFlat = [];
   for (const m of members) {
     const displayName = m.backoffice_id || m.full_name || '—';
     for (const b of (bugsByUser[m.id] || [])) {
-      allBugsFlat.push({ ...b, _memberName: displayName });
+      teamBugsFlat.push({ ...b, _memberName: displayName });
     }
   }
-  allBugsFlat.sort((a, b) => (Number(b.check_date_sort) || 0) - (Number(a.check_date_sort) || 0));
+  teamBugsFlat.sort((a, b) => (Number(b.check_date_sort) || 0) - (Number(a.check_date_sort) || 0));
 
-  if (allBugsFlat.length === 0) {
-    teamBugsContainer.innerHTML = '<div class="empty-state">هنوز خطایی برای اعضای تیم ثبت نشده است</div>';
-  } else {
-    teamBugsContainer.innerHTML = allBugsFlat.map(r => `
-      <div class="bug-item">
-        <div class="bug-top">
-          <span class="bug-kind">${r.kind_of_bug ?? ''}</span>
-          <span class="bug-date">${toJalaliDisplay(r.check_date_jalali)}</span>
-        </div>
-        <div class="bug-agent">کارشناس: ${r._memberName}</div>
-        <div class="bug-order">شماره سفارش: ${r.order_number ?? '—'}</div>
-        ${r.description ? `<div class="bug-desc">${r.description}</div>` : ''}
-        ${r.price_rial ? `<span class="bug-price">${Number(r.price_rial).toLocaleString('en-US')} ریال</span>` : ''}
-      </div>
-    `).join('');
-  }
+  renderTeamBugsList(teamBugsFlat);
 
   // فعال کردن باز/بسته شدن هر ردیف با کلیک
   container.querySelectorAll('.team-item').forEach(item => {
@@ -2081,6 +2084,38 @@ async function loadTeamView(leaderId) {
     });
   });
 }
+
+// رندر لیست خطای تیم (با پشتیبانی از فیلتر جستجوی بک‌آفیس)
+function renderTeamBugsList(list) {
+  const teamBugsContainer = document.getElementById('team-bugs-list');
+  if (!list || list.length === 0) {
+    teamBugsContainer.innerHTML = '<div class="empty-state">خطایی با این مشخصات پیدا نشد</div>';
+    return;
+  }
+  teamBugsContainer.innerHTML = list.map(r => `
+    <div class="bug-item">
+      <div class="bug-top">
+        <span class="bug-kind">${r.kind_of_bug ?? ''}</span>
+        <span class="bug-date">${toJalaliDisplay(r.check_date_jalali)}</span>
+      </div>
+      <div class="bug-agent">کارشناس: ${r._memberName}</div>
+      <div class="bug-order">شماره سفارش: ${r.order_number ?? '—'}</div>
+      ${r.description ? `<div class="bug-desc">${r.description}</div>` : ''}
+      ${r.price_rial ? `<span class="bug-price">${Number(r.price_rial).toLocaleString('en-US')} ریال</span>` : ''}
+    </div>
+  `).join('');
+}
+
+// جستجوی زنده بر اساس یوزر بک‌آفیس کارشناس در تب «خطای تیم»
+document.getElementById('team-bugs-search').addEventListener('input', (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  if (!q) {
+    renderTeamBugsList(teamBugsFlat);
+    return;
+  }
+  const filtered = teamBugsFlat.filter(r => (r._memberName || '').toLowerCase().includes(q));
+  renderTeamBugsList(filtered);
+});
 
 async function loadTargets(userId) {
   const container = document.getElementById('targets-list');
@@ -2134,6 +2169,7 @@ async function loadTargets(userId) {
    ========================================================= */
 let currentUserId = null;
 let currentPeriodKey = null;
+let teamBugsFlat = [];
 let plantState = { usedCups: 0, stage: 0, availableCups: 0, earnedCups: 0 };
 const PLANT_MAX_STAGE = 18;
 
