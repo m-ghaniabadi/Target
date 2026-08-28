@@ -250,6 +250,15 @@
     gap: 7px;
   }
 
+  .last-update-bar {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-faint);
+    padding: 6px 16px 0;
+  }
+
   .summary-row {
     display: flex;
     gap: 14px;
@@ -1536,6 +1545,8 @@
     </div>
   </header>
 
+  <div class="last-update-bar" id="last-update-bar" style="display:none;"></div>
+
   <!-- ویجت باغچه: به‌ازای هر روزی که تارگت خورده، یک لیوان آب جمع می‌شود -->
   <div class="plant-widget" id="plant-widget" style="display:none;">
     <div class="plant-title">باغچه‌ی تارگت</div>
@@ -1655,6 +1666,7 @@ const TABLE_TARGETS = "daily_targets";
 const TABLE_BUGS = "bug_reports";
 const TABLE_PROFILES = "profiles";
 const TABLE_TEAM_ASSIGNMENTS = "team_assignments";
+const TABLE_META = "app_meta";
 /* ========================================================= */
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1793,12 +1805,29 @@ function currentPeriodBounds() {
   };
 }
 
+async function loadLastUpdate() {
+  const bar = document.getElementById('last-update-bar');
+  const { data, error } = await supabaseClient
+    .from(TABLE_META)
+    .select('updated_label')
+    .eq('id', 1)
+    .single();
+
+  if (error || !data || !data.updated_label) {
+    bar.style.display = 'none';
+    return;
+  }
+  bar.textContent = data.updated_label;
+  bar.style.display = 'block';
+}
+
 async function enterApp(user) {
   loginScreen.style.display = 'none';
   appScreen.style.display = 'block';
   document.getElementById('user-label').textContent = user.email.split('@')[0];
 
   currentUserId = user.id;
+  loadLastUpdate();
 
   // بررسی نقش کاربر: سرگروه یا نیروی عادی
   const { data: profile, error: profileError } = await supabaseClient
