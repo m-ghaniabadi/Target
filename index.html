@@ -343,6 +343,73 @@
     font-size: 14px;
   }
 
+  /* ---------- نمای سرگروه: لیست کشویی نیروها ---------- */
+  .team-item { border-bottom: 1px solid var(--line); }
+  .team-item:last-child { border-bottom: none; }
+  .team-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: background .12s;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: right;
+    font-family: var(--font);
+  }
+  .team-header:hover { background: var(--surface-tint); }
+  .team-name-wrap { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .team-chevron {
+    width: 16px; height: 16px; flex-shrink: 0;
+    color: var(--ink-faint);
+    transition: transform .2s ease;
+  }
+  .team-item.open .team-chevron { transform: rotate(180deg); color: var(--accent-deep); }
+  .team-name { font-size: 14.5px; font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .team-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .team-total {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--accent-strong);
+    background: var(--accent-soft);
+    padding: 4px 12px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .team-details {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .25s ease;
+    background: var(--surface-tint);
+  }
+  .team-item.open .team-details { max-height: 900px; }
+  .team-details-inner { padding: 4px 20px 14px; }
+  .team-day-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 4px;
+    border-bottom: 1px dashed var(--line);
+    font-size: 13px;
+  }
+  .team-day-row:last-child { border-bottom: none; }
+  .team-day-date { color: var(--ink-soft); font-weight: 500; }
+  .team-day-badge {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 3px 10px;
+    border-radius: 999px;
+    min-width: 40px;
+    text-align: center;
+  }
+  .team-empty-days { padding: 14px 4px; font-size: 12.5px; color: var(--ink-faint); text-align: center; }
+
   /* ---------- ویجت باغچه / آب دادن ---------- */
   .plant-widget {
     position: fixed;
@@ -1524,7 +1591,7 @@
   </div>
 
   <main>
-    <div class="tabs">
+    <div class="tabs" id="main-tabs">
       <button class="tab-btn active" data-tab="targets">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
         تارگت روزانه
@@ -1554,6 +1621,20 @@
         <div class="loading-state">در حال بارگذاری...</div>
       </div>
     </div>
+
+    <!-- نمای سرگروه: لیست نیروها با مجموع تارگت هر کدام؛ کلیک روی هرکدام ریز روزهای همان بازه را باز می‌کند -->
+    <div id="panel-team" style="display:none;">
+      <div class="period-label" id="team-period-label"></div>
+      <div class="summary-row">
+        <div class="summary-card">
+          <div class="label">مجموع تارگت تیم</div>
+          <div class="value" id="team-period-total">—</div>
+        </div>
+      </div>
+      <div class="list-card" id="team-list">
+        <div class="loading-state">در حال بارگذاری...</div>
+      </div>
+    </div>
   </main>
 </div>
 
@@ -1572,6 +1653,8 @@ const USERNAME_EMAIL_DOMAIN = "bimename.com";
 /* نام جدول‌ها — اگر در Supabase اسم دیگری گذاشتید همینجا تغییر دهید */
 const TABLE_TARGETS = "daily_targets";
 const TABLE_BUGS = "bug_reports";
+const TABLE_PROFILES = "profiles";
+const TABLE_TEAM_ASSIGNMENTS = "team_assignments";
 /* ========================================================= */
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1716,10 +1799,146 @@ async function enterApp(user) {
   document.getElementById('user-label').textContent = user.email.split('@')[0];
 
   currentUserId = user.id;
-  document.getElementById('plant-widget').style.display = 'flex';
 
-  loadTargets(user.id);
-  loadBugs(user.id);
+  // بررسی نقش کاربر: سرگروه یا نیروی عادی
+  const { data: profile, error: profileError } = await supabaseClient
+    .from(TABLE_PROFILES)
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  const isLeader = !profileError && profile && profile.role === 'leader';
+
+  if (isLeader) {
+    // نمای سرگروه: تب‌ها و پنل‌های نیروی عادی مخفی، فقط لیست نیروها نمایش داده می‌شود
+    document.getElementById('main-tabs').style.display = 'none';
+    document.getElementById('panel-targets').classList.remove('active');
+    document.getElementById('panel-bugs').classList.remove('active');
+    document.getElementById('panel-team').style.display = 'block';
+    document.getElementById('plant-widget').style.display = 'none';
+    loadTeamView(user.id);
+  } else {
+    document.getElementById('plant-widget').style.display = 'flex';
+    loadTargets(user.id);
+    loadBugs(user.id);
+  }
+}
+
+/* =========================================================
+   نمای سرگروه
+   - نیروهای زیرمجموعه از جدول واسط team_assignments خوانده می‌شوند
+     (هر نیرو می‌تواند زیرمجموعه‌ی چند سرگروه باشد)
+   - تارگت هر نیرو در بازه‌ی جاری جمع زده می‌شود
+   - کلیک روی هر نیرو، ریز تارگت روز به روزش را باز/بسته می‌کند
+   ========================================================= */
+async function loadTeamView(leaderId) {
+  const container = document.getElementById('team-list');
+  const period = currentPeriodBounds();
+  document.getElementById('team-period-label').textContent = `بازه‌ی جاری: ${period.startLabel} تا ${period.endLabel}`;
+
+  // ۱) گرفتن id نیروهای زیرمجموعه‌ی این سرگروه از جدول واسط
+  const { data: assignments, error: assignError } = await supabaseClient
+    .from(TABLE_TEAM_ASSIGNMENTS)
+    .select('member_id')
+    .eq('leader_id', leaderId);
+
+  if (assignError) {
+    container.innerHTML = `<div class="empty-state">خطا در دریافت لیست نیروها: ${assignError.message}</div>`;
+    document.getElementById('team-period-total').textContent = '—';
+    return;
+  }
+  if (!assignments || assignments.length === 0) {
+    container.innerHTML = '<div class="empty-state">هنوز نیرویی به شما اساین نشده است</div>';
+    document.getElementById('team-period-total').textContent = '۰';
+    return;
+  }
+
+  const memberIdList = assignments.map(a => a.member_id);
+
+  // ۲) گرفتن اطلاعات پروفایل همان نیروها
+  const { data: members, error: membersError } = await supabaseClient
+    .from(TABLE_PROFILES)
+    .select('id, backoffice_id, full_name')
+    .in('id', memberIdList);
+
+  if (membersError) {
+    container.innerHTML = `<div class="empty-state">خطا در دریافت پروفایل نیروها: ${membersError.message}</div>`;
+    document.getElementById('team-period-total').textContent = '—';
+    return;
+  }
+  if (!members || members.length === 0) {
+    container.innerHTML = '<div class="empty-state">هنوز نیرویی به شما اساین نشده است</div>';
+    document.getElementById('team-period-total').textContent = '۰';
+    return;
+  }
+
+  const memberIds = members.map(m => m.id);
+
+  // ۲) گرفتن تارگت همه‌ی این نیروها در بازه‌ی جاری، در یک درخواست
+  const { data: rows, error: rowsError } = await supabaseClient
+    .from(TABLE_TARGETS)
+    .select('*')
+    .in('user_id', memberIds)
+    .gte('report_date_sort', period.startSort)
+    .lte('report_date_sort', period.endSort)
+    .order('report_date_sort', { ascending: true });
+
+  if (rowsError) {
+    container.innerHTML = `<div class="empty-state">خطا در دریافت تارگت‌ها: ${rowsError.message}</div>`;
+    document.getElementById('team-period-total').textContent = '—';
+    return;
+  }
+
+  // گروه‌بندی ردیف‌های تارگت بر اساس هر نیرو
+  const rowsByUser = {};
+  for (const r of (rows || [])) {
+    if (!rowsByUser[r.user_id]) rowsByUser[r.user_id] = [];
+    rowsByUser[r.user_id].push(r);
+  }
+
+  let teamTotal = 0;
+  const memberBlocks = members.map(m => {
+    const myRows = rowsByUser[m.id] || [];
+    const myTotal = myRows.reduce((sum, r) => sum + (Number(r.target_count) || 0), 0);
+    teamTotal += myTotal;
+    const displayName = m.full_name || m.backoffice_id || '—';
+
+    const daysHtml = myRows.length
+      ? myRows.map(r => `
+          <div class="team-day-row">
+            <span class="team-day-date">${toJalaliDisplay(r.report_date_jalali)}</span>
+            <span class="team-day-badge">${r.target_count != null ? formatNumber(r.target_count) : '—'}</span>
+          </div>
+        `).join('')
+      : '<div class="team-empty-days">هنوز تارگتی برای این بازه ثبت نشده است</div>';
+
+    return `
+      <div class="team-item" data-member="${m.id}">
+        <button class="team-header" type="button">
+          <div class="team-name-wrap">
+            <svg class="team-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            <span class="team-name">${displayName}</span>
+          </div>
+          <div class="team-right">
+            <span class="team-total">${formatNumber(myTotal)}</span>
+          </div>
+        </button>
+        <div class="team-details">
+          <div class="team-details-inner">${daysHtml}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = memberBlocks;
+  document.getElementById('team-period-total').textContent = formatNumber(teamTotal);
+
+  // فعال کردن باز/بسته شدن هر ردیف با کلیک
+  container.querySelectorAll('.team-item').forEach(item => {
+    item.querySelector('.team-header').addEventListener('click', () => {
+      item.classList.toggle('open');
+    });
+  });
 }
 
 async function loadTargets(userId) {
