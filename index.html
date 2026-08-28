@@ -1901,7 +1901,7 @@ async function loadTeamView(leaderId) {
     const myRows = rowsByUser[m.id] || [];
     const myTotal = myRows.reduce((sum, r) => sum + (Number(r.target_count) || 0), 0);
     teamTotal += myTotal;
-    const displayName = m.full_name || m.backoffice_id || '—';
+    const displayName = m.backoffice_id || m.full_name || '—';
 
     const daysHtml = myRows.length
       ? myRows.map(r => `
