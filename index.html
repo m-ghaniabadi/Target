@@ -387,6 +387,9 @@
     padding: 4px 12px;
     border-radius: 999px;
     white-space: nowrap;
+    min-width: 48px;
+    text-align: center;
+    box-sizing: border-box;
   }
   .team-details {
     max-height: 0;
@@ -426,6 +429,9 @@
     padding: 4px 11px;
     border-radius: 999px;
     white-space: nowrap;
+    min-width: 48px;
+    text-align: center;
+    box-sizing: border-box;
   }
   .team-section-title {
     font-size: 12px;
@@ -2018,20 +2024,6 @@ async function loadTeamView(leaderId) {
         `).join('')
       : '<div class="team-empty-days">هنوز تارگتی برای این بازه ثبت نشده است</div>';
 
-    const bugsHtml = myBugs.length
-      ? myBugs.map(r => `
-          <div class="bug-item">
-            <div class="bug-top">
-              <span class="bug-kind">${r.kind_of_bug ?? ''}</span>
-              <span class="bug-date">${toJalaliDisplay(r.check_date_jalali)}</span>
-            </div>
-            <div class="bug-order">شماره سفارش: ${r.order_number ?? '—'}</div>
-            ${r.description ? `<div class="bug-desc">${r.description}</div>` : ''}
-            ${r.price_rial ? `<span class="bug-price">${Number(r.price_rial).toLocaleString('en-US')} ریال</span>` : ''}
-          </div>
-        `).join('')
-      : '<div class="team-empty-days">خطایی برای این نیرو ثبت نشده است</div>';
-
     return `
       <div class="team-item" data-member="${m.id}">
         <button class="team-header" type="button">
@@ -2045,12 +2037,7 @@ async function loadTeamView(leaderId) {
           </div>
         </button>
         <div class="team-details">
-          <div class="team-details-inner">
-            <div class="team-section-title">تارگت روزهای بازه</div>
-            ${daysHtml}
-            <div class="team-section-title">خطاهای ثبت‌شده</div>
-            ${bugsHtml}
-          </div>
+          <div class="team-details-inner">${daysHtml}</div>
         </div>
       </div>
     `;
