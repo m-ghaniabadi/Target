@@ -389,8 +389,12 @@
   #cup-water {
     transition: y .5s ease, height .5s ease, opacity .4s ease;
   }
-  #cup-water.full { filter: drop-shadow(0 0 4px rgba(23,169,255,.55)); }
+  #cup-water.full { filter: drop-shadow(0 0 4px rgba(78,157,203,.55)); }
+  #cup-water-surface {
+    transition: cy .5s ease, rx .5s ease, opacity .4s ease;
+  }
   .cup-svg.pour #cup-water { transition: y .35s ease-in, height .35s ease-in; }
+  .cup-svg.pour #cup-water-surface { transition: cy .35s ease-in, rx .35s ease-in; }
 
   .water-btn {
     width: 100%;
@@ -429,7 +433,7 @@
   /* ---------- صحنه‌ی شب‌گل‌های درخشان (باغچه) ---------- */
   /* منبع الهام: Yup Nguyen — Virtual Garden (dribbble.com/shots/11096994) */
   .flower-scene {
-  --dark-color: #000;
+  --dark-color: #eaf6ff;
 }
 .flower-scene *, .flower-scene *::after, .flower-scene *::before {
   padding: 0;
@@ -455,7 +459,9 @@
   width: 100%;
   height: 100%;
   filter: blur(0.1cqmin);
-  background-image: radial-gradient(ellipse at top, transparent 0%, var(--dark-color)), radial-gradient(ellipse at bottom, var(--dark-color), rgba(145, 233, 255, 0.2)), repeating-linear-gradient(220deg, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 19px, transparent 19px, transparent 22px), repeating-linear-gradient(189deg, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 19px, transparent 19px, transparent 22px), repeating-linear-gradient(148deg, rgb(0, 0, 0) 0px, rgb(0, 0, 0) 19px, transparent 19px, transparent 22px), linear-gradient(90deg, rgb(0, 255, 250), rgb(240, 240, 240));
+  background-image:
+    linear-gradient(to bottom, #bfe3ff 0%, #dff1ff 45%, #eefaf0 68%, #d7f0c9 100%),
+    radial-gradient(ellipse at 30% 15%, rgba(255,255,255,.55), transparent 55%);
 }
 .flower-scene .flowers {
   position: relative;
@@ -1355,6 +1361,16 @@
     transform: rotate(-20deg) rotateY(-10deg);
   }
 }
+/* حرکت تاب‌خوردنِ عمومی برای شاخه‌های اضافه‌ای که با هر لیوان آب رشد می‌کنند؛
+   زاویه‌ی پایه‌ی هر شاخه با متغیر --base-angle مشخص می‌شود تا هر شاخه در جای خودش باز شود. */
+@keyframes sway-branch {
+  0%, 100% {
+    transform: rotate(calc(var(--base-angle, 0deg) + 2deg)) scale(var(--branch-scale, 1));
+  }
+  50% {
+    transform: rotate(calc(var(--base-angle, 0deg) - 2deg)) scale(var(--branch-scale, 1));
+  }
+}
 @keyframes blooming-leaf-right {
   0% {
     transform-origin: left;
@@ -1462,14 +1478,38 @@
     </div>
 
     <div class="cup-wrap">
-      <svg class="cup-svg" id="cup-svg" viewBox="0 0 60 70">
+      <svg class="cup-svg" id="cup-svg" viewBox="0 0 100 130">
         <defs>
           <clipPath id="cup-clip">
-            <path d="M12 8 H48 L42 62 Q42 66 38 66 H22 Q18 66 18 62 Z"/>
+            <path d="M22 20 L78 20 L72 108 Q72 120 62 120 L38 120 Q28 120 28 108 Z"/>
           </clipPath>
+          <linearGradient id="cup-glass-tint" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#e4f4ff"/>
+            <stop offset="45%" stop-color="#ffffff"/>
+            <stop offset="100%" stop-color="#d7edfb"/>
+          </linearGradient>
+          <linearGradient id="cup-water-gradient" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#8fd0ee"/>
+            <stop offset="55%" stop-color="#6cb9e6"/>
+            <stop offset="100%" stop-color="#4e9dcb"/>
+          </linearGradient>
         </defs>
-        <rect id="cup-water" x="10" y="66" width="40" height="0" fill="#17A9FF" clip-path="url(#cup-clip)"/>
-        <path d="M12 8 H48 L42 62 Q42 66 38 66 H22 Q18 66 18 62 Z" fill="none" stroke="#5A6B8C" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+        <!-- بدنه‌ی لیوان (تینت خیلی کم‌رنگ برای حالت خالی) -->
+        <path d="M22 20 L78 20 L72 108 Q72 120 62 120 L38 120 Q28 120 28 108 Z" fill="url(#cup-glass-tint)" opacity="0.6"/>
+
+        <!-- آب داخل لیوان -->
+        <rect id="cup-water" x="18" y="120" width="64" height="0" fill="url(#cup-water-gradient)" clip-path="url(#cup-clip)"/>
+        <ellipse id="cup-water-surface" cx="50" cy="120" rx="0" ry="3.4" fill="#4E9DCB" opacity="0" clip-path="url(#cup-clip)"/>
+
+        <!-- خط نور روی بدنه‌ی شیشه -->
+        <path d="M32 26 L37 26 L32 106 Q32 111 36 114 L31 114 Q27 111 27 106 Z" fill="#ffffff" opacity="0.55" clip-path="url(#cup-clip)"/>
+
+        <!-- بدنه‌ی شیشه (خط دور) -->
+        <path d="M22 20 L78 20 L72 108 Q72 120 62 120 L38 120 Q28 120 28 108 Z" fill="none" stroke="#9BD3EE" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+        <!-- لبه‌ی بالای لیوان (ضخامت شیشه) -->
+        <ellipse cx="50" cy="20" rx="28" ry="5.5" fill="none" stroke="#9BD3EE" stroke-width="2.5"/>
       </svg>
     </div>
 
@@ -1733,216 +1773,67 @@ let currentPeriodKey = null;
 let plantState = { usedCups: 0, stage: 0, availableCups: 0, earnedCups: 0 };
 const PLANT_MAX_STAGE = 18;
 
-/* هر آب دادن دقیقاً یکی از این عناصر باغچه رو به‌صورت کامل (با گل، ساقه و برگ‌هاش) اضافه می‌کنه.
-   یعنی به‌جای رشد تدریجیِ یک بوته، هر بار یک «شاخه»/گل جدید در باغچه سبز می‌شه. */
+/* سه طرح پایه‌ی گل داریم (flower--1/2/3). سه شاخه‌ی اول همون طرح‌های اصلی‌ان.
+   از شاخه‌ی چهارم به بعد، با هر لیوان آب، دوباره از همین سه طرح استفاده می‌شه ولی
+   هر شاخه با زاویه و اندازه‌ی متفاوتی باز می‌شه؛ یعنی واقعاً یک «شاخه‌ی تازه»
+   به بوته اضافه می‌شه، نه یک تزئین جداگانه (چمن/برگ و...). */
+
+function flowerLeafsBlock(suffix) {
+  return `
+      <div class="flower__leafs${suffix}">
+        <div class="flower__leaf flower__leaf--1"></div>
+        <div class="flower__leaf flower__leaf--2"></div>
+        <div class="flower__leaf flower__leaf--3"></div>
+        <div class="flower__leaf flower__leaf--4"></div>
+        <div class="flower__white-circle"></div>
+        <div class="flower__light flower__light--1"></div>
+        <div class="flower__light flower__light--2"></div>
+        <div class="flower__light flower__light--3"></div>
+        <div class="flower__light flower__light--4"></div>
+        <div class="flower__light flower__light--5"></div>
+        <div class="flower__light flower__light--6"></div>
+        <div class="flower__light flower__light--7"></div>
+        <div class="flower__light flower__light--8"></div>
+      </div>`;
+}
+
+function flowerLineBlock(leafCount) {
+  let leafs = '';
+  for (let i = 1; i <= leafCount; i++) {
+    leafs += `\n        <div class="flower__line__leaf flower__line__leaf--${i}"></div>`;
+  }
+  return `
+      <div class="flower__line">${leafs}
+      </div>`;
+}
+
+/* تعداد برگ‌های روی ساقه‌ی هر طرح (برای تنوعِ دیداری بین طرح‌ها) */
+const BRANCH_LEAF_COUNT = { 1: 6, 2: 4, 3: 4 };
+
+function branchHTML(variant, leafsSuffix, extraStyle) {
+  const style = extraStyle ? ` style="${extraStyle}"` : '';
+  return `<div class="flower flower--${variant}"${style}>${flowerLeafsBlock(leafsSuffix)}${flowerLineBlock(BRANCH_LEAF_COUNT[variant])}
+    </div>`;
+}
+
+/* زاویه‌ی باز شدنِ شاخه‌های اضافه (چهارم به بعد)؛ به‌ترتیب چپ و راست بازتر می‌شه
+   تا دسته‌گل هر بار پهن‌تر و پرپشت‌تر به‌نظر برسه. کافیه لیست رو طولانی‌تر کرد
+   تا شاخه‌های بیشتری هم پشتیبانی بشه. */
+const EXTRA_BRANCH_ANGLES = [34, -34, 48, -48, 10, -10, 60, -60, 24, -24, 70, -70, 4, -4, 42, -42, 55, -55, 16, -16];
+
+function extraBranchHTML(index) {
+  const variant = (index % 3) + 1;
+  const angle = EXTRA_BRANCH_ANGLES[index % EXTRA_BRANCH_ANGLES.length];
+  const scale = (0.85 + (index % 4) * 0.07).toFixed(2);
+  const style = `animation: sway-branch 4s linear infinite; --base-angle: ${angle}deg; --branch-scale: ${scale};`;
+  return branchHTML(variant, '', style);
+}
+
 const GARDEN_STAGES = [
-  `<div class="flower flower--1">
-      <div class="flower__leafs flower__leafs--1">
-        <div class="flower__leaf flower__leaf--1"></div>
-        <div class="flower__leaf flower__leaf--2"></div>
-        <div class="flower__leaf flower__leaf--3"></div>
-        <div class="flower__leaf flower__leaf--4"></div>
-        <div class="flower__white-circle"></div>
-        <div class="flower__light flower__light--1"></div>
-        <div class="flower__light flower__light--2"></div>
-        <div class="flower__light flower__light--3"></div>
-        <div class="flower__light flower__light--4"></div>
-        <div class="flower__light flower__light--5"></div>
-        <div class="flower__light flower__light--6"></div>
-        <div class="flower__light flower__light--7"></div>
-        <div class="flower__light flower__light--8"></div>
-      </div>
-      <div class="flower__line">
-        <div class="flower__line__leaf flower__line__leaf--1"></div>
-        <div class="flower__line__leaf flower__line__leaf--2"></div>
-        <div class="flower__line__leaf flower__line__leaf--3"></div>
-        <div class="flower__line__leaf flower__line__leaf--4"></div>
-        <div class="flower__line__leaf flower__line__leaf--5"></div>
-        <div class="flower__line__leaf flower__line__leaf--6"></div>
-      </div>
-    </div>`,
-  `<div class="flower flower--2">
-      <div class="flower__leafs flower__leafs--2">
-        <div class="flower__leaf flower__leaf--1"></div>
-        <div class="flower__leaf flower__leaf--2"></div>
-        <div class="flower__leaf flower__leaf--3"></div>
-        <div class="flower__leaf flower__leaf--4"></div>
-        <div class="flower__white-circle"></div>
-        <div class="flower__light flower__light--1"></div>
-        <div class="flower__light flower__light--2"></div>
-        <div class="flower__light flower__light--3"></div>
-        <div class="flower__light flower__light--4"></div>
-        <div class="flower__light flower__light--5"></div>
-        <div class="flower__light flower__light--6"></div>
-        <div class="flower__light flower__light--7"></div>
-        <div class="flower__light flower__light--8"></div>
-      </div>
-      <div class="flower__line">
-        <div class="flower__line__leaf flower__line__leaf--1"></div>
-        <div class="flower__line__leaf flower__line__leaf--2"></div>
-        <div class="flower__line__leaf flower__line__leaf--3"></div>
-        <div class="flower__line__leaf flower__line__leaf--4"></div>
-      </div>
-    </div>`,
-  `<div class="flower flower--3">
-      <div class="flower__leafs flower__leafs--3">
-        <div class="flower__leaf flower__leaf--1"></div>
-        <div class="flower__leaf flower__leaf--2"></div>
-        <div class="flower__leaf flower__leaf--3"></div>
-        <div class="flower__leaf flower__leaf--4"></div>
-        <div class="flower__white-circle"></div>
-        <div class="flower__light flower__light--1"></div>
-        <div class="flower__light flower__light--2"></div>
-        <div class="flower__light flower__light--3"></div>
-        <div class="flower__light flower__light--4"></div>
-        <div class="flower__light flower__light--5"></div>
-        <div class="flower__light flower__light--6"></div>
-        <div class="flower__light flower__light--7"></div>
-        <div class="flower__light flower__light--8"></div>
-      </div>
-      <div class="flower__line">
-        <div class="flower__line__leaf flower__line__leaf--1"></div>
-        <div class="flower__line__leaf flower__line__leaf--2"></div>
-        <div class="flower__line__leaf flower__line__leaf--3"></div>
-        <div class="flower__line__leaf flower__line__leaf--4"></div>
-      </div>
-    </div>`,
-  `<div class="grow-ans" style="--d:0s">
-      <div class="flower__g-long">
-        <div class="flower__g-long__top"></div>
-        <div class="flower__g-long__bottom"></div>
-      </div>
-    </div>`,
-  `<div class="growing-grass">
-      <div class="flower__grass flower__grass--1">
-        <div class="flower__grass--top"></div>
-        <div class="flower__grass--bottom"></div>
-        <div class="flower__grass__leaf flower__grass__leaf--1"></div>
-        <div class="flower__grass__leaf flower__grass__leaf--2"></div>
-        <div class="flower__grass__leaf flower__grass__leaf--3"></div>
-        <div class="flower__grass__leaf flower__grass__leaf--4"></div>
-        <div class="flower__grass__leaf flower__grass__leaf--5"></div>
-        <div class="flower__grass__leaf flower__grass__leaf--6"></div>
-        <div class="flower__grass__leaf flower__grass__leaf--7"></div>
-        <div class="flower__grass__leaf flower__grass__leaf--8"></div>
-        <div class="flower__grass__overlay"></div>
-      </div>
-    </div>`,
-  `<div class="growing-grass">
-      <div class="flower__grass flower__grass--2">
-        <div class="flower__grass--top"></div>
-        <div class="flower__grass--bottom"></div>
-        <div class="flower__grass__leaf flower__grass__leaf--1"></div>
-        <div class="flower__grass__leaf flower__grass__leaf--2"></div>
-        <div class="flower__grass__leaf flower__grass__leaf--3"></div>
-        <div class="flower__grass__leaf flower__grass__leaf--4"></div>
-        <div class="flower__grass__leaf flower__grass__leaf--5"></div>
-        <div class="flower__grass__leaf flower__grass__leaf--6"></div>
-        <div class="flower__grass__leaf flower__grass__leaf--7"></div>
-        <div class="flower__grass__leaf flower__grass__leaf--8"></div>
-        <div class="flower__grass__overlay"></div>
-      </div>
-    </div>`,
-  `<div class="grow-ans" style="--d:0s">
-      <div class="flower__g-right flower__g-right--1">
-        <div class="leaf"></div>
-      </div>
-    </div>`,
-  `<div class="grow-ans" style="--d:0s">
-      <div class="flower__g-right flower__g-right--2">
-        <div class="leaf"></div>
-      </div>
-    </div>`,
-  `<div class="grow-ans" style="--d:0s">
-      <div class="flower__g-front">
-        <div class="flower__g-front__leaf-wrapper flower__g-front__leaf-wrapper--1">
-          <div class="flower__g-front__leaf"></div>
-        </div>
-        <div class="flower__g-front__leaf-wrapper flower__g-front__leaf-wrapper--2">
-          <div class="flower__g-front__leaf"></div>
-        </div>
-        <div class="flower__g-front__leaf-wrapper flower__g-front__leaf-wrapper--3">
-          <div class="flower__g-front__leaf"></div>
-        </div>
-        <div class="flower__g-front__leaf-wrapper flower__g-front__leaf-wrapper--4">
-          <div class="flower__g-front__leaf"></div>
-        </div>
-        <div class="flower__g-front__leaf-wrapper flower__g-front__leaf-wrapper--5">
-          <div class="flower__g-front__leaf"></div>
-        </div>
-        <div class="flower__g-front__leaf-wrapper flower__g-front__leaf-wrapper--6">
-          <div class="flower__g-front__leaf"></div>
-        </div>
-        <div class="flower__g-front__leaf-wrapper flower__g-front__leaf-wrapper--7">
-          <div class="flower__g-front__leaf"></div>
-        </div>
-        <div class="flower__g-front__leaf-wrapper flower__g-front__leaf-wrapper--8">
-          <div class="flower__g-front__leaf"></div>
-        </div>
-        <div class="flower__g-front__line"></div>
-      </div>
-    </div>`,
-  `<div class="grow-ans" style="--d:0s">
-      <div class="flower__g-fr">
-        <div class="leaf"></div>
-        <div class="flower__g-fr__leaf flower__g-fr__leaf--1"></div>
-        <div class="flower__g-fr__leaf flower__g-fr__leaf--2"></div>
-        <div class="flower__g-fr__leaf flower__g-fr__leaf--3"></div>
-        <div class="flower__g-fr__leaf flower__g-fr__leaf--4"></div>
-        <div class="flower__g-fr__leaf flower__g-fr__leaf--5"></div>
-        <div class="flower__g-fr__leaf flower__g-fr__leaf--6"></div>
-        <div class="flower__g-fr__leaf flower__g-fr__leaf--7"></div>
-        <div class="flower__g-fr__leaf flower__g-fr__leaf--8"></div>
-      </div>
-    </div>`,
-  `<div class="long-g long-g--0">
-      <div class="grow-ans" style="--d:0s"><div class="leaf leaf--0"></div></div>
-      <div class="grow-ans" style="--d:.15s"><div class="leaf leaf--1"></div></div>
-      <div class="grow-ans" style="--d:.3s"><div class="leaf leaf--2"></div></div>
-      <div class="grow-ans" style="--d:.45s"><div class="leaf leaf--3"></div></div>
-    </div>`,
-  `<div class="long-g long-g--1">
-      <div class="grow-ans" style="--d:0s"><div class="leaf leaf--0"></div></div>
-      <div class="grow-ans" style="--d:.15s"><div class="leaf leaf--1"></div></div>
-      <div class="grow-ans" style="--d:.3s"><div class="leaf leaf--2"></div></div>
-      <div class="grow-ans" style="--d:.45s"><div class="leaf leaf--3"></div></div>
-    </div>`,
-  `<div class="long-g long-g--2">
-      <div class="grow-ans" style="--d:0s"><div class="leaf leaf--0"></div></div>
-      <div class="grow-ans" style="--d:.15s"><div class="leaf leaf--1"></div></div>
-      <div class="grow-ans" style="--d:.3s"><div class="leaf leaf--2"></div></div>
-      <div class="grow-ans" style="--d:.45s"><div class="leaf leaf--3"></div></div>
-    </div>`,
-  `<div class="long-g long-g--3">
-      <div class="grow-ans" style="--d:0s"><div class="leaf leaf--0"></div></div>
-      <div class="grow-ans" style="--d:.15s"><div class="leaf leaf--1"></div></div>
-      <div class="grow-ans" style="--d:.3s"><div class="leaf leaf--2"></div></div>
-      <div class="grow-ans" style="--d:.45s"><div class="leaf leaf--3"></div></div>
-    </div>`,
-  `<div class="long-g long-g--4">
-      <div class="grow-ans" style="--d:0s"><div class="leaf leaf--0"></div></div>
-      <div class="grow-ans" style="--d:.15s"><div class="leaf leaf--1"></div></div>
-      <div class="grow-ans" style="--d:.3s"><div class="leaf leaf--2"></div></div>
-      <div class="grow-ans" style="--d:.45s"><div class="leaf leaf--3"></div></div>
-    </div>`,
-  `<div class="long-g long-g--5">
-      <div class="grow-ans" style="--d:0s"><div class="leaf leaf--0"></div></div>
-      <div class="grow-ans" style="--d:.15s"><div class="leaf leaf--1"></div></div>
-      <div class="grow-ans" style="--d:.3s"><div class="leaf leaf--2"></div></div>
-      <div class="grow-ans" style="--d:.45s"><div class="leaf leaf--3"></div></div>
-    </div>`,
-  `<div class="long-g long-g--6">
-      <div class="grow-ans" style="--d:0s"><div class="leaf leaf--0"></div></div>
-      <div class="grow-ans" style="--d:.15s"><div class="leaf leaf--1"></div></div>
-      <div class="grow-ans" style="--d:.3s"><div class="leaf leaf--2"></div></div>
-      <div class="grow-ans" style="--d:.45s"><div class="leaf leaf--3"></div></div>
-    </div>`,
-  `<div class="long-g long-g--7">
-      <div class="grow-ans" style="--d:0s"><div class="leaf leaf--0"></div></div>
-      <div class="grow-ans" style="--d:.15s"><div class="leaf leaf--1"></div></div>
-      <div class="grow-ans" style="--d:.3s"><div class="leaf leaf--2"></div></div>
-      <div class="grow-ans" style="--d:.45s"><div class="leaf leaf--3"></div></div>
-    </div>`
+  branchHTML(1, '--1'),
+  branchHTML(2, '--2'),
+  branchHTML(3, '--3'),
+  ...Array.from({ length: Math.max(0, PLANT_MAX_STAGE - 3) }, (_, i) => extraBranchHTML(i))
 ];
 
 function cupsForTarget(t) {
@@ -1981,11 +1872,23 @@ function savePlantState() {
 
 function updateCupVisual(fraction) {
   const cupWater = document.getElementById('cup-water');
-  const maxFillHeight = 58; // از y=8 تا y=66
-  const fillHeight = maxFillHeight * Math.max(0, Math.min(1, fraction));
-  cupWater.setAttribute('y', 66 - fillHeight);
+  const cupSurface = document.getElementById('cup-water-surface');
+  const topY = 20, bottomY = 120; // بازه‌ی ارتفاع بدنه‌ی لیوان در viewBox جدید
+  const maxFillHeight = bottomY - topY;
+  const f = Math.max(0, Math.min(1, fraction));
+  const fillHeight = maxFillHeight * f;
+  const waterTopY = bottomY - fillHeight;
+
+  cupWater.setAttribute('y', waterTopY);
   cupWater.setAttribute('height', fillHeight);
-  cupWater.classList.toggle('full', fraction >= 1);
+  cupWater.classList.toggle('full', f >= 1);
+
+  // شعاعِ بیضیِ سطح آب، متناسب با باریک‌شدنِ تدریجیِ بدنه‌ی لیوان از بالا به پایین
+  const topRx = 27, bottomRx = 16;
+  const rx = bottomRx + (topRx - bottomRx) * f;
+  cupSurface.setAttribute('cy', waterTopY);
+  cupSurface.setAttribute('rx', rx);
+  cupSurface.style.opacity = f > 0.02 ? '1' : '0';
 }
 
 function updatePlantStageVisual(stage) {
