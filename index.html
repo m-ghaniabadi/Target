@@ -418,6 +418,24 @@
     text-align: center;
   }
   .team-empty-days { padding: 14px 4px; font-size: 12.5px; color: var(--ink-faint); text-align: center; }
+  .team-bug-total {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--danger);
+    background: var(--danger-soft);
+    padding: 4px 11px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .team-section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-faint);
+    margin: 14px 4px 6px;
+  }
+  .team-details-inner .bug-item { padding: 12px 4px; }
+  .team-details-inner .bug-item:hover { background: none; }
+  .bug-agent { font-size: 13px; font-weight: 700; color: var(--accent-deep); margin-bottom: 4px; }
 
   /* ---------- ویجت باغچه / آب دادن ---------- */
   .plant-widget {
@@ -1633,8 +1651,20 @@
       </div>
     </div>
 
+    <!-- نمای سرگروه: تب‌های تیم -->
+    <div class="tabs" id="team-tabs" style="display:none;">
+      <button class="tab-btn active" data-team-tab="team">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
+        تارگت تیم
+      </button>
+      <button class="tab-btn" data-team-tab="team-bugs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8a4 4 0 0 1 4 4v4a4 4 0 0 1-8 0v-4a4 4 0 0 1 4-4Z"/><path d="M8 12H4M20 12h-4M12 8V4M9 4l1.5 2M15 4l-1.5 2M6 6l2 2M18 6l-2 2M6 18l2-2M18 18l-2-2"/></svg>
+        خطای تیم
+      </button>
+    </div>
+
     <!-- نمای سرگروه: لیست نیروها با مجموع تارگت هر کدام؛ کلیک روی هرکدام ریز روزهای همان بازه را باز می‌کند -->
-    <div id="panel-team" style="display:none;">
+    <div class="panel" id="panel-team">
       <div class="period-label" id="team-period-label"></div>
       <div class="summary-row">
         <div class="summary-card">
@@ -1643,6 +1673,13 @@
         </div>
       </div>
       <div class="list-card" id="team-list">
+        <div class="loading-state">در حال بارگذاری...</div>
+      </div>
+    </div>
+
+    <!-- نمای سرگروه: خطای تیم (لیست تخت همه‌ی خطاها به‌همراه یوزر بک‌آفیس کارشناس مربوطه) -->
+    <div class="panel" id="panel-team-bugs">
+      <div class="list-card" id="team-bugs-list">
         <div class="loading-state">در حال بارگذاری...</div>
       </div>
     </div>
@@ -1724,15 +1761,27 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
   location.reload();
 });
 
-document.querySelectorAll('.tab-btn').forEach(btn => {
+document.querySelectorAll('#main-tabs .tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('#main-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-targets').classList.remove('active');
+    document.getElementById('panel-bugs').classList.remove('active');
     btn.classList.add('active');
     document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
     if (btn.dataset.tab === 'bugs') {
       markBugsSeen(lastBugsKeys);
     }
+  });
+});
+
+// تب‌های نمای سرگروه (تارگت تیم / خطای تیم)
+document.querySelectorAll('#team-tabs .tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#team-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-team').classList.remove('active');
+    document.getElementById('panel-team-bugs').classList.remove('active');
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.teamTab).classList.add('active');
   });
 });
 
@@ -1839,11 +1888,13 @@ async function enterApp(user) {
   const isLeader = !profileError && profile && profile.role === 'leader';
 
   if (isLeader) {
-    // نمای سرگروه: تب‌ها و پنل‌های نیروی عادی مخفی، فقط لیست نیروها نمایش داده می‌شود
+    // نمای سرگروه: تب‌ها و پنل‌های نیروی عادی مخفی، تب‌های تیم نمایش داده می‌شود
     document.getElementById('main-tabs').style.display = 'none';
     document.getElementById('panel-targets').classList.remove('active');
     document.getElementById('panel-bugs').classList.remove('active');
-    document.getElementById('panel-team').style.display = 'block';
+    document.getElementById('team-tabs').style.display = 'flex';
+    document.getElementById('panel-team').classList.add('active');
+    document.getElementById('panel-team-bugs').classList.remove('active');
     document.getElementById('plant-widget').style.display = 'none';
     loadTeamView(user.id);
   } else {
@@ -1918,6 +1969,17 @@ async function loadTeamView(leaderId) {
     return;
   }
 
+  // ۳) گرفتن خطاهای ثبت‌شده‌ی همه‌ی این نیروها (کل خطاها، مثل نمای شخصی هر کارشناس)
+  const { data: bugRows, error: bugRowsError } = await supabaseClient
+    .from(TABLE_BUGS)
+    .select('*')
+    .in('user_id', memberIds)
+    .order('check_date_sort', { ascending: false });
+
+  if (bugRowsError) {
+    console.error('خطا در دریافت خطاهای نیروها:', bugRowsError.message);
+  }
+
   // گروه‌بندی ردیف‌های تارگت بر اساس هر نیرو
   const rowsByUser = {};
   for (const r of (rows || [])) {
@@ -1925,18 +1987,26 @@ async function loadTeamView(leaderId) {
     rowsByUser[r.user_id].push(r);
   }
 
+  // گروه‌بندی خطاها بر اساس هر نیرو
+  const bugsByUser = {};
+  for (const b of (bugRows || [])) {
+    if (!bugsByUser[b.user_id]) bugsByUser[b.user_id] = [];
+    bugsByUser[b.user_id].push(b);
+  }
+
   let teamTotal = 0;
   const membersWithTotals = members.map(m => {
     const myRows = rowsByUser[m.id] || [];
+    const myBugs = bugsByUser[m.id] || [];
     const myTotal = myRows.reduce((sum, r) => sum + (Number(r.target_count) || 0), 0);
     teamTotal += myTotal;
-    return { m, myRows, myTotal };
+    return { m, myRows, myBugs, myTotal };
   });
 
   // مرتب‌سازی نیروها بر اساس مجموع تارگت، از زیاد به کم
   membersWithTotals.sort((a, b) => b.myTotal - a.myTotal);
 
-  const memberBlocks = membersWithTotals.map(({ m, myRows, myTotal }) => {
+  const memberBlocks = membersWithTotals.map(({ m, myRows, myBugs, myTotal }) => {
     const displayName = m.backoffice_id || m.full_name || '—';
 
     const daysHtml = myRows.length
@@ -1948,6 +2018,20 @@ async function loadTeamView(leaderId) {
         `).join('')
       : '<div class="team-empty-days">هنوز تارگتی برای این بازه ثبت نشده است</div>';
 
+    const bugsHtml = myBugs.length
+      ? myBugs.map(r => `
+          <div class="bug-item">
+            <div class="bug-top">
+              <span class="bug-kind">${r.kind_of_bug ?? ''}</span>
+              <span class="bug-date">${toJalaliDisplay(r.check_date_jalali)}</span>
+            </div>
+            <div class="bug-order">شماره سفارش: ${r.order_number ?? '—'}</div>
+            ${r.description ? `<div class="bug-desc">${r.description}</div>` : ''}
+            ${r.price_rial ? `<span class="bug-price">${Number(r.price_rial).toLocaleString('en-US')} ریال</span>` : ''}
+          </div>
+        `).join('')
+      : '<div class="team-empty-days">خطایی برای این نیرو ثبت نشده است</div>';
+
     return `
       <div class="team-item" data-member="${m.id}">
         <button class="team-header" type="button">
@@ -1956,11 +2040,17 @@ async function loadTeamView(leaderId) {
             <span class="team-name">${displayName}</span>
           </div>
           <div class="team-right">
+            <span class="team-bug-total">${myBugs.length} خطا</span>
             <span class="team-total">${formatNumber(myTotal)}</span>
           </div>
         </button>
         <div class="team-details">
-          <div class="team-details-inner">${daysHtml}</div>
+          <div class="team-details-inner">
+            <div class="team-section-title">تارگت روزهای بازه</div>
+            ${daysHtml}
+            <div class="team-section-title">خطاهای ثبت‌شده</div>
+            ${bugsHtml}
+          </div>
         </div>
       </div>
     `;
@@ -1968,6 +2058,34 @@ async function loadTeamView(leaderId) {
 
   container.innerHTML = memberBlocks;
   document.getElementById('team-period-total').textContent = formatNumber(teamTotal);
+
+  // ---------- تب «خطای تیم»: لیست تخت همه‌ی خطاها به‌همراه backoffice_id کارشناس ----------
+  const teamBugsContainer = document.getElementById('team-bugs-list');
+  const allBugsFlat = [];
+  for (const m of members) {
+    const displayName = m.backoffice_id || m.full_name || '—';
+    for (const b of (bugsByUser[m.id] || [])) {
+      allBugsFlat.push({ ...b, _memberName: displayName });
+    }
+  }
+  allBugsFlat.sort((a, b) => (Number(b.check_date_sort) || 0) - (Number(a.check_date_sort) || 0));
+
+  if (allBugsFlat.length === 0) {
+    teamBugsContainer.innerHTML = '<div class="empty-state">هنوز خطایی برای اعضای تیم ثبت نشده است</div>';
+  } else {
+    teamBugsContainer.innerHTML = allBugsFlat.map(r => `
+      <div class="bug-item">
+        <div class="bug-top">
+          <span class="bug-kind">${r.kind_of_bug ?? ''}</span>
+          <span class="bug-date">${toJalaliDisplay(r.check_date_jalali)}</span>
+        </div>
+        <div class="bug-agent">کارشناس: ${r._memberName}</div>
+        <div class="bug-order">شماره سفارش: ${r.order_number ?? '—'}</div>
+        ${r.description ? `<div class="bug-desc">${r.description}</div>` : ''}
+        ${r.price_rial ? `<span class="bug-price">${Number(r.price_rial).toLocaleString('en-US')} ریال</span>` : ''}
+      </div>
+    `).join('');
+  }
 
   // فعال کردن باز/بسته شدن هر ردیف با کلیک
   container.querySelectorAll('.team-item').forEach(item => {
