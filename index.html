@@ -1897,10 +1897,17 @@ async function loadTeamView(leaderId) {
   }
 
   let teamTotal = 0;
-  const memberBlocks = members.map(m => {
+  const membersWithTotals = members.map(m => {
     const myRows = rowsByUser[m.id] || [];
     const myTotal = myRows.reduce((sum, r) => sum + (Number(r.target_count) || 0), 0);
     teamTotal += myTotal;
+    return { m, myRows, myTotal };
+  });
+
+  // مرتب‌سازی نیروها بر اساس مجموع تارگت، از زیاد به کم
+  membersWithTotals.sort((a, b) => b.myTotal - a.myTotal);
+
+  const memberBlocks = membersWithTotals.map(({ m, myRows, myTotal }) => {
     const displayName = m.backoffice_id || m.full_name || '—';
 
     const daysHtml = myRows.length
