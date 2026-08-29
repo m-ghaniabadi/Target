@@ -693,7 +693,6 @@ const TABLE_TARGETS = "daily_targets";
 const TABLE_BUGS = "bug_reports";
 const TABLE_PROFILES = "profiles";
 const TABLE_TEAM_ASSIGNMENTS = "team_assignments";
-const TABLE_SUPERVISOR_ASSIGNMENTS = "supervisor_assignments";
 const TABLE_META = "app_meta";
 /* ========================================================= */
 
@@ -1097,8 +1096,8 @@ async function loadTeamView(leaderId) {
 
 /* =========================================================
    نمای سوپروایزر
-   - سرگروه‌های زیرمجموعه از جدول واسط supervisor_assignments خوانده می‌شوند
-     (هر سرگروه می‌تواند زیرمجموعه‌ی چند سوپروایزر باشد)
+   - سرگروه‌های زیرمجموعه مستقیماً از ستون profiles.supervisor خوانده می‌شوند
+     (روی پروفایل هر سرگروه، آیدی سوپروایزرش در همین ستون ذخیره شده)
    - نفرات هر سرگروه از همان جدول واسط تیم (team_assignments) خوانده می‌شود
    - کلیک روی هر سرگروه، لیست نفراتش را باز/بسته می‌کند
    - کلیک روی هر نفر، ریز تارگت روز به روزش را باز/بسته می‌کند
@@ -1108,35 +1107,14 @@ async function loadSupervisorView(supervisorId) {
   const period = currentPeriodBounds();
   document.getElementById('supervisor-period-label').textContent = `بازه‌ی جاری: ${period.startLabel} تا ${period.endLabel}`;
 
-  // ۱) گرفتن id سرگروه‌های زیرمجموعه‌ی این سوپروایزر
-  const { data: supAssignments, error: supAssignError } = await supabaseClient
-    .from(TABLE_SUPERVISOR_ASSIGNMENTS)
-    .select('leader_id')
-    .eq('supervisor_id', supervisorId);
-
-  if (supAssignError) {
-    container.innerHTML = `<div class="empty-state">خطا در دریافت لیست سرگروه‌ها: ${supAssignError.message}</div>`;
-    document.getElementById('supervisor-period-total').textContent = '—';
-    return;
-  }
-  if (!supAssignments || supAssignments.length === 0) {
-    container.innerHTML = '<div class="empty-state">هنوز سرگروهی به شما اساین نشده است</div>';
-    document.getElementById('supervisor-period-total').textContent = '۰';
-    supervisorBugsFlat = [];
-    renderSupervisorBugsList(supervisorBugsFlat);
-    return;
-  }
-
-  const leaderIdList = [...new Set(supAssignments.map(a => a.leader_id))];
-
-  // ۲) گرفتن پروفایل سرگروه‌ها
+  // ۱) گرفتن پروفایل سرگروه‌های زیرمجموعه‌ی این سوپروایزر
   const { data: leaders, error: leadersError } = await supabaseClient
     .from(TABLE_PROFILES)
     .select('id, full_name, backoffice_id')
-    .in('id', leaderIdList);
+    .eq('supervisor', supervisorId);
 
   if (leadersError) {
-    container.innerHTML = `<div class="empty-state">خطا در دریافت پروفایل سرگروه‌ها: ${leadersError.message}</div>`;
+    container.innerHTML = `<div class="empty-state">خطا در دریافت لیست سرگروه‌ها: ${leadersError.message}</div>`;
     document.getElementById('supervisor-period-total').textContent = '—';
     return;
   }
@@ -1147,6 +1125,8 @@ async function loadSupervisorView(supervisorId) {
     renderSupervisorBugsList(supervisorBugsFlat);
     return;
   }
+
+  const leaderIdList = leaders.map(l => l.id);
 
   // ۳) گرفتن نفرات هرکدام از این سرگروه‌ها از جدول واسط تیم
   const { data: teamAssignments, error: teamAssignError } = await supabaseClient
