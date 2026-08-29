@@ -461,16 +461,6 @@
   .team-details-inner .bug-item:hover { background: none; }
   .bug-agent { font-size: 13px; font-weight: 700; color: var(--accent-deep); margin-bottom: 4px; }
 
-  /* ---------- نمای سرپرست: لیست کشویی سرگروه‌ها و زیر آن، لیست کشویی نیروهای هر سرگروه ---------- */
-  .supervisor-leader-item > .team-header { background: var(--surface-tint); }
-  .supervisor-leader-item > .team-header .team-name { font-size: 15px; font-weight: 700; }
-  .supervisor-leader-item.open > .team-details { max-height: 6000px; }
-  .supervisor-members-inner { padding: 0; background: var(--surface); }
-  .supervisor-members-inner .team-item { border-bottom: 1px solid var(--line); }
-  .supervisor-members-inner .team-item:last-child { border-bottom: none; }
-  .supervisor-members-inner .team-header { padding: 12px 20px 12px 32px; }
-  .supervisor-members-inner .team-name { font-size: 13.5px; font-weight: 500; }
-
   /* ---------- ویجت باغچه / آب دادن ---------- */
   .plant-widget {
     position: fixed;
@@ -1720,21 +1710,6 @@
         <div class="loading-state">در حال بارگذاری...</div>
       </div>
     </div>
-
-    <!-- نمای سرپرست: لیست همه‌ی سرگروه‌ها؛ کلیک روی هرکدام تیمش را باز می‌کند؛
-         کلیک روی هر نیرو هم ریز تارگت روز به روزش را باز می‌کند -->
-    <div class="panel" id="panel-supervisor">
-      <div class="period-label" id="supervisor-period-label"></div>
-      <div class="summary-row">
-        <div class="summary-card">
-          <div class="label">مجموع تارگت کل</div>
-          <div class="value" id="supervisor-period-total">—</div>
-        </div>
-      </div>
-      <div class="list-card" id="supervisor-list">
-        <div class="loading-state">در حال بارگذاری...</div>
-      </div>
-    </div>
   </main>
 </div>
 
@@ -1938,20 +1913,8 @@ async function enterApp(user) {
     .single();
 
   const isLeader = !profileError && profile && profile.role === 'leader';
-  const isSupervisor = !profileError && profile && profile.role === 'supervisor';
 
-  if (isSupervisor) {
-    // نمای سرپرست: همه‌ی تب‌ها و پنل‌های دیگر مخفی، فقط پنل سرپرست نمایش داده می‌شود
-    document.getElementById('main-tabs').style.display = 'none';
-    document.getElementById('panel-targets').classList.remove('active');
-    document.getElementById('panel-bugs').classList.remove('active');
-    document.getElementById('team-tabs').style.display = 'none';
-    document.getElementById('panel-team').classList.remove('active');
-    document.getElementById('panel-team-bugs').classList.remove('active');
-    document.getElementById('panel-supervisor').classList.add('active');
-    document.getElementById('plant-widget').style.display = 'none';
-    loadSupervisorView();
-  } else if (isLeader) {
+  if (isLeader) {
     // نمای سرگروه: تب‌ها و پنل‌های نیروی عادی مخفی، تب‌های تیم نمایش داده می‌شود
     document.getElementById('main-tabs').style.display = 'none';
     document.getElementById('panel-targets').classList.remove('active');
@@ -1959,7 +1922,6 @@ async function enterApp(user) {
     document.getElementById('team-tabs').style.display = 'flex';
     document.getElementById('panel-team').classList.add('active');
     document.getElementById('panel-team-bugs').classList.remove('active');
-    document.getElementById('panel-supervisor').classList.remove('active');
     document.getElementById('plant-widget').style.display = 'none';
     loadTeamView(user.id);
   } else {
@@ -2120,174 +2082,6 @@ async function loadTeamView(leaderId) {
   // فعال کردن باز/بسته شدن هر ردیف با کلیک
   container.querySelectorAll('.team-item').forEach(item => {
     item.querySelector('.team-header').addEventListener('click', () => {
-      item.classList.toggle('open');
-    });
-  });
-}
-
-/* =========================================================
-   نمای سرپرست
-   - همه‌ی سرگروه‌ها (role = 'leader') از profiles خوانده می‌شوند
-   - زیرمجموعه‌ی هر سرگروه از team_assignments خوانده می‌شود
-   - کلیک روی هر سرگروه، لیست نیروهایش را باز/بسته می‌کند
-   - کلیک روی هر نیرو، ریز تارگت روز به روزش را باز/بسته می‌کند
-   ========================================================= */
-async function loadSupervisorView() {
-  const container = document.getElementById('supervisor-list');
-  const period = currentPeriodBounds();
-  document.getElementById('supervisor-period-label').textContent = `بازه‌ی جاری: ${period.startLabel} تا ${period.endLabel}`;
-
-  // ۱) گرفتن همه‌ی سرگروه‌ها
-  const { data: leaders, error: leadersError } = await supabaseClient
-    .from(TABLE_PROFILES)
-    .select('id, backoffice_id, full_name')
-    .eq('role', 'leader');
-
-  if (leadersError) {
-    container.innerHTML = `<div class="empty-state">خطا در دریافت لیست سرگروه‌ها: ${leadersError.message}</div>`;
-    document.getElementById('supervisor-period-total').textContent = '—';
-    return;
-  }
-  if (!leaders || leaders.length === 0) {
-    container.innerHTML = '<div class="empty-state">هنوز سرگروهی تعریف نشده است</div>';
-    document.getElementById('supervisor-period-total').textContent = '۰';
-    return;
-  }
-
-  // ۲) گرفتن همه‌ی اساین‌های سرگروه -> نیرو
-  const { data: assignments, error: assignError } = await supabaseClient
-    .from(TABLE_TEAM_ASSIGNMENTS)
-    .select('leader_id, member_id');
-
-  if (assignError) {
-    container.innerHTML = `<div class="empty-state">خطا در دریافت لیست نیروها: ${assignError.message}</div>`;
-    document.getElementById('supervisor-period-total').textContent = '—';
-    return;
-  }
-
-  const memberIdsByLeader = {};
-  const allMemberIdsSet = new Set();
-  for (const a of (assignments || [])) {
-    if (!memberIdsByLeader[a.leader_id]) memberIdsByLeader[a.leader_id] = [];
-    memberIdsByLeader[a.leader_id].push(a.member_id);
-    allMemberIdsSet.add(a.member_id);
-  }
-  const allMemberIds = Array.from(allMemberIdsSet);
-
-  // ۳) گرفتن پروفایل همه‌ی این نیروها
-  let membersById = {};
-  if (allMemberIds.length > 0) {
-    const { data: members, error: membersError } = await supabaseClient
-      .from(TABLE_PROFILES)
-      .select('id, backoffice_id, full_name')
-      .in('id', allMemberIds);
-
-    if (membersError) {
-      container.innerHTML = `<div class="empty-state">خطا در دریافت پروفایل نیروها: ${membersError.message}</div>`;
-      document.getElementById('supervisor-period-total').textContent = '—';
-      return;
-    }
-    for (const m of (members || [])) membersById[m.id] = m;
-  }
-
-  // ۴) گرفتن تارگت همه‌ی این نیروها در بازه‌ی جاری، در یک درخواست
-  let rowsByUser = {};
-  if (allMemberIds.length > 0) {
-    const { data: rows, error: rowsError } = await supabaseClient
-      .from(TABLE_TARGETS)
-      .select('*')
-      .in('user_id', allMemberIds)
-      .gte('report_date_sort', period.startSort)
-      .lte('report_date_sort', period.endSort)
-      .order('report_date_sort', { ascending: true });
-
-    if (rowsError) {
-      container.innerHTML = `<div class="empty-state">خطا در دریافت تارگت‌ها: ${rowsError.message}</div>`;
-      document.getElementById('supervisor-period-total').textContent = '—';
-      return;
-    }
-    for (const r of (rows || [])) {
-      if (!rowsByUser[r.user_id]) rowsByUser[r.user_id] = [];
-      rowsByUser[r.user_id].push(r);
-    }
-  }
-
-  let grandTotal = 0;
-
-  const leaderBlocks = leaders.map(leader => {
-    const memberIds = memberIdsByLeader[leader.id] || [];
-    const leaderMembers = memberIds.map(id => membersById[id]).filter(Boolean);
-
-    let leaderTotal = 0;
-    const membersWithTotals = leaderMembers.map(m => {
-      const myRows = rowsByUser[m.id] || [];
-      const myTotal = myRows.reduce((sum, r) => sum + (Number(r.target_count) || 0), 0);
-      leaderTotal += myTotal;
-      return { m, myRows, myTotal };
-    });
-    membersWithTotals.sort((a, b) => b.myTotal - a.myTotal);
-    grandTotal += leaderTotal;
-
-    const memberBlocksHtml = membersWithTotals.length
-      ? membersWithTotals.map(({ m, myRows, myTotal }) => {
-          const displayName = m.backoffice_id || m.full_name || '—';
-          const daysHtml = myRows.length
-            ? myRows.map(r => `
-                <div class="team-day-row">
-                  <span class="team-day-date">${toJalaliDisplay(r.report_date_jalali)}</span>
-                  <span class="team-day-badge">${r.target_count != null ? formatNumber(r.target_count) : '—'}</span>
-                </div>
-              `).join('')
-            : '<div class="team-empty-days">هنوز تارگتی برای این بازه ثبت نشده است</div>';
-
-          return `
-            <div class="team-item" data-member="${m.id}">
-              <button class="team-header" type="button">
-                <div class="team-name-wrap">
-                  <svg class="team-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                  <span class="team-name">${displayName}</span>
-                </div>
-                <div class="team-right">
-                  <span class="team-total">${formatNumber(myTotal)}</span>
-                </div>
-              </button>
-              <div class="team-details">
-                <div class="team-details-inner">${daysHtml}</div>
-              </div>
-            </div>
-          `;
-        }).join('')
-      : '<div class="team-empty-days">هنوز نیرویی به این سرگروه اساین نشده است</div>';
-
-    const leaderDisplayName = leader.backoffice_id || leader.full_name || '—';
-
-    return `
-      <div class="team-item supervisor-leader-item" data-leader="${leader.id}">
-        <button class="team-header" type="button">
-          <div class="team-name-wrap">
-            <svg class="team-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            <span class="team-name">${leaderDisplayName}</span>
-          </div>
-          <div class="team-right">
-            <span class="team-total">${formatNumber(leaderTotal)}</span>
-          </div>
-        </button>
-        <div class="team-details">
-          <div class="team-details-inner supervisor-members-inner">${memberBlocksHtml}</div>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  container.innerHTML = leaderBlocks;
-  document.getElementById('supervisor-period-total').textContent = formatNumber(grandTotal);
-
-  // فعال کردن باز/بسته شدن هر ردیف (هم سرگروه‌ها، هم نیروهای زیرشون) با کلیک
-  container.querySelectorAll('.team-item').forEach(item => {
-    const header = item.querySelector(':scope > .team-header');
-    if (!header) return;
-    header.addEventListener('click', (e) => {
-      e.stopPropagation();
       item.classList.toggle('open');
     });
   });
