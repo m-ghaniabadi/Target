@@ -1111,7 +1111,8 @@ async function loadSupervisorView(supervisorId) {
   const { data: leaders, error: leadersError } = await supabaseClient
     .from(TABLE_PROFILES)
     .select('id, full_name, backoffice_id')
-    .eq('supervisor', supervisorId);
+    .eq('supervisor', supervisorId)
+    .eq('role', 'leader');
 
   if (leadersError) {
     container.innerHTML = `<div class="empty-state">خطا در دریافت لیست سرگروه‌ها: ${leadersError.message}</div>`;
