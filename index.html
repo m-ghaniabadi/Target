@@ -588,6 +588,1057 @@
   .leader-item.open > .leader-details { max-height: 4000px; }
   .leader-details-inner { padding: 12px 14px 16px; }
 
+
+  /* ---------- ویجت باغچه (بدون کادر/متن/دکمه — فقط گلدون قابل جابجایی) ---------- */
+  .plant-widget {
+    position: fixed;
+    left: 22px;
+    bottom: 26px;
+    z-index: 40;
+    width: 176px;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: grab;
+  }
+  .plant-widget.dragging { cursor: grabbing; }
+
+  .flower-frame {
+    width: 176px;
+    height: 210px;
+    overflow: hidden;
+    container-type: size;
+    container-name: flowerbox;
+    pointer-events: none; /* درگ از روی خودِ ویجت انجام می‌شود، نه المان‌های داخلی */
+  }
+  /* صحنه بدون پس‌زمینه/کادر رندر می‌شود؛ فقط گل‌ها روی زمینه‌ی صفحه دیده می‌شوند */
+  .flower-scene { background: transparent !important; }
+  .flower-scene .night { display: none; }
+  .flower-scene .flowers { transition: filter .5s ease; }
+  .flower-scene.watering-flash .flowers { filter: drop-shadow(0 0 8px rgba(107,240,255,.9)) drop-shadow(0 0 16px rgba(107,240,255,.4)); }
+
+  @media (max-width: 760px) {
+    .plant-widget { left: 10px; bottom: 10px; width: 132px; }
+    .flower-frame { width: 132px; height: 158px; }
+  }
+
+  /* ---------- نشانگر لیوان آب (به‌جای موس، وقتی روی گلدون است) ---------- */
+  .water-cursor {
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 1000;
+    pointer-events: none;
+    transform: translate(var(--wc-x, -1000px), var(--wc-y, -1000px)) rotate(0deg);
+    transform-origin: 78% 12%;
+    transition: transform .16s ease-out;
+    display: none;
+    filter: drop-shadow(0 3px 6px rgba(15,27,51,.28));
+  }
+  .water-cursor.visible { display: block; }
+  .water-cursor .wc-liquid { transition: opacity .2s ease, height .2s ease; }
+  .water-cursor.is-empty .wc-liquid { opacity: 0; }
+  .water-cursor.pouring {
+    transition: transform .22s cubic-bezier(.32,.64,.3,1);
+    transform: translate(var(--wc-x, -1000px), var(--wc-y, -1000px)) rotate(58deg);
+  }
+  .water-cursor.shake { animation: wc-shake .32s ease; }
+  @keyframes wc-shake {
+    0%, 100% { transform: translate(var(--wc-x, -1000px), var(--wc-y, -1000px)) rotate(0deg); }
+    30% { transform: translate(var(--wc-x, -1000px), var(--wc-y, -1000px)) rotate(-14deg); }
+    70% { transform: translate(var(--wc-x, -1000px), var(--wc-y, -1000px)) rotate(11deg); }
+  }
+
+  /* ---------- صحنه‌ی شب‌گل‌های درخشان (باغچه) ---------- */
+  /* منبع الهام: Yup Nguyen — Virtual Garden (dribbble.com/shots/11096994) */
+  .flower-scene {
+  --dark-color: #eaf6ff;
+}
+.flower-scene *, .flower-scene *::after, .flower-scene *::before {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+.flower-scene {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background-color: var(--dark-color);
+  perspective: 1000px;
+}
+.flower-scene .night {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  width: 100%;
+  height: 100%;
+  filter: blur(0.1cqmin);
+  background-image:
+    linear-gradient(to bottom, #bfe3ff 0%, #dff1ff 45%, #eefaf0 68%, #d7f0c9 100%),
+    radial-gradient(ellipse at 30% 15%, rgba(255,255,255,.55), transparent 55%);
+}
+.flower-scene .flowers {
+  position: relative;
+  transform: scale(0.9);
+}
+.flower-scene .flower {
+  position: absolute;
+  bottom: 10cqmin;
+  transform-origin: bottom center;
+  z-index: 10;
+  --fl-speed: 0.8s;
+}
+.flower-scene .flower--1 {
+  animation: moving-flower-1 4s linear infinite;
+}
+.flower-scene .flower--1 .flower__line {
+  height: 70cqmin;
+  animation-delay: 0.3s;
+}
+.flower-scene .flower--1 .flower__line__leaf--1 {
+  animation: blooming-leaf-right var(--fl-speed) 1.6s backwards;
+}
+.flower-scene .flower--1 .flower__line__leaf--2 {
+  animation: blooming-leaf-right var(--fl-speed) 1.4s backwards;
+}
+.flower-scene .flower--1 .flower__line__leaf--3 {
+  animation: blooming-leaf-left var(--fl-speed) 1.2s backwards;
+}
+.flower-scene .flower--1 .flower__line__leaf--4 {
+  animation: blooming-leaf-left var(--fl-speed) 1s backwards;
+}
+.flower-scene .flower--1 .flower__line__leaf--5 {
+  animation: blooming-leaf-right var(--fl-speed) 1.8s backwards;
+}
+.flower-scene .flower--1 .flower__line__leaf--6 {
+  animation: blooming-leaf-left var(--fl-speed) 2s backwards;
+}
+.flower-scene .flower--2 {
+  left: 50%;
+  transform: rotate(20deg);
+  animation: moving-flower-2 4s linear infinite;
+}
+.flower-scene .flower--2 .flower__line {
+  height: 60cqmin;
+  animation-delay: 0.6s;
+}
+.flower-scene .flower--2 .flower__line__leaf--1 {
+  animation: blooming-leaf-right var(--fl-speed) 1.9s backwards;
+}
+.flower-scene .flower--2 .flower__line__leaf--2 {
+  animation: blooming-leaf-right var(--fl-speed) 1.7s backwards;
+}
+.flower-scene .flower--2 .flower__line__leaf--3 {
+  animation: blooming-leaf-left var(--fl-speed) 1.5s backwards;
+}
+.flower-scene .flower--2 .flower__line__leaf--4 {
+  animation: blooming-leaf-left var(--fl-speed) 1.3s backwards;
+}
+.flower-scene .flower--3 {
+  left: 50%;
+  transform: rotate(-15deg);
+  animation: moving-flower-3 4s linear infinite;
+}
+.flower-scene .flower--3 .flower__line {
+  animation-delay: 0.9s;
+}
+.flower-scene .flower--3 .flower__line__leaf--1 {
+  animation: blooming-leaf-right var(--fl-speed) 2.5s backwards;
+}
+.flower-scene .flower--3 .flower__line__leaf--2 {
+  animation: blooming-leaf-right var(--fl-speed) 2.3s backwards;
+}
+.flower-scene .flower--3 .flower__line__leaf--3 {
+  animation: blooming-leaf-left var(--fl-speed) 2.1s backwards;
+}
+.flower-scene .flower--3 .flower__line__leaf--4 {
+  animation: blooming-leaf-left var(--fl-speed) 1.9s backwards;
+}
+.flower-scene .flower__leafs {
+  position: relative;
+  animation: blooming-flower 2s backwards;
+}
+.flower-scene .flower__leafs--1 {
+  animation-delay: 1.1s;
+}
+.flower-scene .flower__leafs--2 {
+  animation-delay: 1.4s;
+}
+.flower-scene .flower__leafs--3 {
+  animation-delay: 1.7s;
+}
+.flower-scene .flower__leafs::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -100%);
+  width: 8cqmin;
+  height: 8cqmin;
+  background-color: #6bf0ff;
+  filter: blur(10cqmin);
+}
+.flower-scene .flower__leaf {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 8cqmin;
+  height: 11cqmin;
+  border-radius: 51% 49% 47% 53%/44% 45% 55% 69%;
+  background-color: #a7ffee;
+  background-image: linear-gradient(to top, #54b8aa, #a7ffee);
+  transform-origin: bottom center;
+  opacity: 0.9;
+  box-shadow: inset 0 0 2cqmin rgba(255, 255, 255, 0.5);
+}
+.flower-scene .flower__leaf--1 {
+  transform: translate(-10%, 1%) rotateY(40deg) rotateX(-50deg);
+}
+.flower-scene .flower__leaf--2 {
+  transform: translate(-50%, -4%) rotateX(40deg);
+}
+.flower-scene .flower__leaf--3 {
+  transform: translate(-90%, 0%) rotateY(45deg) rotateX(50deg);
+}
+.flower-scene .flower__leaf--4 {
+  width: 8cqmin;
+  height: 8cqmin;
+  transform-origin: bottom left;
+  border-radius: 4cqmin 10cqmin 4cqmin 4cqmin;
+  transform: translate(0%, 18%) rotateX(70deg) rotate(-43deg);
+  background-image: linear-gradient(to top, #39c6d6, #a7ffee);
+  z-index: 1;
+  opacity: 0.8;
+}
+.flower-scene .flower__white-circle {
+  position: absolute;
+  left: -3.5cqmin;
+  top: -3cqmin;
+  width: 9cqmin;
+  height: 4cqmin;
+  border-radius: 50%;
+  background-color: #fff;
+}
+.flower-scene .flower__white-circle::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  transform: translate(-50%, -50%);
+  width: 60%;
+  height: 60%;
+  border-radius: inherit;
+  background-image: repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.03) 0px, rgba(0, 0, 0, 0.03) 1px, transparent 1px, transparent 12px), repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.03) 0px, rgba(0, 0, 0, 0.03) 1px, transparent 1px, transparent 12px), repeating-linear-gradient(67.5deg, rgba(0, 0, 0, 0.03) 0px, rgba(0, 0, 0, 0.03) 1px, transparent 1px, transparent 12px), repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.03) 0px, rgba(0, 0, 0, 0.03) 1px, transparent 1px, transparent 12px), repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.03) 0px, rgba(0, 0, 0, 0.03) 1px, transparent 1px, transparent 12px), repeating-linear-gradient(112.5deg, rgba(0, 0, 0, 0.03) 0px, rgba(0, 0, 0, 0.03) 1px, transparent 1px, transparent 12px), repeating-linear-gradient(112.5deg, rgba(0, 0, 0, 0.03) 0px, rgba(0, 0, 0, 0.03) 1px, transparent 1px, transparent 12px), repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.03) 0px, rgba(0, 0, 0, 0.03) 1px, transparent 1px, transparent 12px), repeating-linear-gradient(22.5deg, rgba(0, 0, 0, 0.03) 0px, rgba(0, 0, 0, 0.03) 1px, transparent 1px, transparent 12px), repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.03) 0px, rgba(0, 0, 0, 0.03) 1px, transparent 1px, transparent 12px), repeating-linear-gradient(22.5deg, rgba(0, 0, 0, 0.03) 0px, rgba(0, 0, 0, 0.03) 1px, transparent 1px, transparent 12px), repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.03) 0px, rgba(0, 0, 0, 0.03) 1px, transparent 1px, transparent 12px), repeating-linear-gradient(157.5deg, rgba(0, 0, 0, 0.03) 0px, rgba(0, 0, 0, 0.03) 1px, transparent 1px, transparent 12px), repeating-linear-gradient(67.5deg, rgba(0, 0, 0, 0.03) 0px, rgba(0, 0, 0, 0.03) 1px, transparent 1px, transparent 12px), repeating-linear-gradient(67.5deg, rgba(0, 0, 0, 0.03) 0px, rgba(0, 0, 0, 0.03) 1px, transparent 1px, transparent 12px), linear-gradient(90deg, rgb(255, 235, 18), rgb(255, 206, 0));
+}
+.flower-scene .flower__line {
+  height: 55cqmin;
+  width: 1.5cqmin;
+  background-image: linear-gradient(to left, rgba(0, 0, 0, 0.2), transparent, rgba(255, 255, 255, 0.2)), linear-gradient(to top, transparent 10%, #14757a, #39c6d6);
+  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.5);
+  animation: grow-flower-tree 4s backwards;
+}
+.flower-scene .flower__line__leaf {
+  --w: 7cqmin;
+  --h: calc(var(--w) + 2cqmin);
+  position: absolute;
+  top: 20%;
+  left: 90%;
+  width: var(--w);
+  height: var(--h);
+  border-top-right-radius: var(--h);
+  border-bottom-left-radius: var(--h);
+  background-image: linear-gradient(to top, rgba(20, 117, 122, 0.4), #39c6d6);
+}
+.flower-scene .flower__line__leaf--1 {
+  transform: rotate(70deg) rotateY(30deg);
+}
+.flower-scene .flower__line__leaf--2 {
+  top: 45%;
+  transform: rotate(70deg) rotateY(30deg);
+}
+.flower-scene .flower__line__leaf--3, .flower-scene .flower__line__leaf--4, .flower-scene .flower__line__leaf--6 {
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-left-radius: var(--h);
+  border-bottom-right-radius: var(--h);
+  left: -460%;
+  top: 12%;
+  transform: rotate(-70deg) rotateY(30deg);
+}
+.flower-scene .flower__line__leaf--4 {
+  top: 40%;
+}
+.flower-scene .flower__line__leaf--5 {
+  top: 0;
+  transform-origin: left;
+  transform: rotate(70deg) rotateY(30deg) scale(0.6);
+}
+.flower-scene .flower__line__leaf--6 {
+  top: -2%;
+  left: -450%;
+  transform-origin: right;
+  transform: rotate(-70deg) rotateY(30deg) scale(0.6);
+}
+.flower-scene .flower__light {
+  position: absolute;
+  bottom: 0cqmin;
+  width: 1cqmin;
+  height: 1cqmin;
+  background-color: rgb(255, 251, 0);
+  border-radius: 50%;
+  filter: blur(0.2cqmin);
+  animation: light-ans 4s linear infinite backwards;
+}
+.flower-scene .flower__light:nth-child(odd) {
+  background-color: #23f0ff;
+}
+.flower-scene .flower__light--1 {
+  left: -2cqmin;
+  animation-delay: 1s;
+}
+.flower-scene .flower__light--2 {
+  left: 3cqmin;
+  animation-delay: 0.5s;
+}
+.flower-scene .flower__light--3 {
+  left: -6cqmin;
+  animation-delay: 0.3s;
+}
+.flower-scene .flower__light--4 {
+  left: 6cqmin;
+  animation-delay: 0.9s;
+}
+.flower-scene .flower__light--5 {
+  left: -1cqmin;
+  animation-delay: 1.5s;
+}
+.flower-scene .flower__light--6 {
+  left: -4cqmin;
+  animation-delay: 3s;
+}
+.flower-scene .flower__light--7 {
+  left: 3cqmin;
+  animation-delay: 2s;
+}
+.flower-scene .flower__light--8 {
+  left: -6cqmin;
+  animation-delay: 3.5s;
+}
+.flower-scene .flower__grass {
+  --c: #159faa;
+  --line-w: 1.5cqmin;
+  position: absolute;
+  bottom: 12cqmin;
+  left: -7cqmin;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  z-index: 20;
+  transform-origin: bottom center;
+  transform: rotate(-48deg) rotateY(40deg);
+}
+.flower-scene .flower__grass--1 {
+  animation: moving-grass 2s linear infinite;
+}
+.flower-scene .flower__grass--2 {
+  left: 2cqmin;
+  bottom: 10cqmin;
+  transform: scale(0.5) rotate(75deg) rotateX(10deg) rotateY(-200deg);
+  opacity: 0.8;
+  z-index: 0;
+  animation: moving-grass--2 1.5s linear infinite;
+}
+.flower-scene .flower__grass--top {
+  width: 7cqmin;
+  height: 10cqmin;
+  border-top-right-radius: 100%;
+  border-right: var(--line-w) solid var(--c);
+  transform-origin: bottom center;
+  transform: rotate(-2deg);
+}
+.flower-scene .flower__grass--bottom {
+  margin-top: -2px;
+  width: var(--line-w);
+  height: 25cqmin;
+  background-image: linear-gradient(to top, transparent, var(--c));
+}
+.flower-scene .flower__grass__leaf {
+  --size: 10cqmin;
+  position: absolute;
+  width: calc(var(--size) * 2.1);
+  height: var(--size);
+  border-top-left-radius: var(--size);
+  border-top-right-radius: var(--size);
+  background-image: linear-gradient(to top, transparent, transparent 30%, var(--c));
+  z-index: 100;
+}
+.flower-scene .flower__grass__leaf--1 {
+  top: -6%;
+  left: 30%;
+  --size: 6cqmin;
+  transform: rotate(-20deg);
+  animation: growing-grass-ans--1 2s 2.6s backwards;
+}
+@keyframes growing-grass-ans--1 {
+  0% {
+    transform-origin: bottom left;
+    transform: rotate(-20deg) scale(0);
+  }
+}
+.flower-scene .flower__grass__leaf--2 {
+  top: -5%;
+  left: -110%;
+  --size: 6cqmin;
+  transform: rotate(10deg);
+  animation: growing-grass-ans--2 2s 2.4s linear backwards;
+}
+@keyframes growing-grass-ans--2 {
+  0% {
+    transform-origin: bottom right;
+    transform: rotate(10deg) scale(0);
+  }
+}
+.flower-scene .flower__grass__leaf--3 {
+  top: 5%;
+  left: 60%;
+  --size: 8cqmin;
+  transform: rotate(-18deg) rotateX(-20deg);
+  animation: growing-grass-ans--3 2s 2.2s linear backwards;
+}
+@keyframes growing-grass-ans--3 {
+  0% {
+    transform-origin: bottom left;
+    transform: rotate(-18deg) rotateX(-20deg) scale(0);
+  }
+}
+.flower-scene .flower__grass__leaf--4 {
+  top: 6%;
+  left: -135%;
+  --size: 8cqmin;
+  transform: rotate(2deg);
+  animation: growing-grass-ans--4 2s 2s linear backwards;
+}
+@keyframes growing-grass-ans--4 {
+  0% {
+    transform-origin: bottom right;
+    transform: rotate(2deg) scale(0);
+  }
+}
+.flower-scene .flower__grass__leaf--5 {
+  top: 20%;
+  left: 60%;
+  --size: 10cqmin;
+  transform: rotate(-24deg) rotateX(-20deg);
+  animation: growing-grass-ans--5 2s 1.8s linear backwards;
+}
+@keyframes growing-grass-ans--5 {
+  0% {
+    transform-origin: bottom left;
+    transform: rotate(-24deg) rotateX(-20deg) scale(0);
+  }
+}
+.flower-scene .flower__grass__leaf--6 {
+  top: 22%;
+  left: -180%;
+  --size: 10cqmin;
+  transform: rotate(10deg);
+  animation: growing-grass-ans--6 2s 1.6s linear backwards;
+}
+@keyframes growing-grass-ans--6 {
+  0% {
+    transform-origin: bottom right;
+    transform: rotate(10deg) scale(0);
+  }
+}
+.flower-scene .flower__grass__leaf--7 {
+  top: 39%;
+  left: 70%;
+  --size: 10cqmin;
+  transform: rotate(-10deg);
+  animation: growing-grass-ans--7 2s 1.4s linear backwards;
+}
+@keyframes growing-grass-ans--7 {
+  0% {
+    transform-origin: bottom left;
+    transform: rotate(-10deg) scale(0);
+  }
+}
+.flower-scene .flower__grass__leaf--8 {
+  top: 40%;
+  left: -215%;
+  --size: 11cqmin;
+  transform: rotate(10deg);
+  animation: growing-grass-ans--8 2s 1.2s linear backwards;
+}
+@keyframes growing-grass-ans--8 {
+  0% {
+    transform-origin: bottom right;
+    transform: rotate(10deg) scale(0);
+  }
+}
+.flower-scene .flower__grass__overlay {
+  position: absolute;
+  top: -10%;
+  right: 0%;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  filter: blur(1.5cqmin);
+  z-index: 100;
+}
+.flower-scene .flower__g-long {
+  --w: 2cqmin;
+  --h: 6cqmin;
+  --c: #159faa;
+  position: absolute;
+  bottom: 10cqmin;
+  left: -3cqmin;
+  transform-origin: bottom center;
+  transform: rotate(-30deg) rotateY(-20deg);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  animation: flower-g-long-ans 3s linear infinite;
+}
+@keyframes flower-g-long-ans {
+  0%, 100% {
+    transform: rotate(-30deg) rotateY(-20deg);
+  }
+  50% {
+    transform: rotate(-32deg) rotateY(-20deg);
+  }
+}
+.flower-scene .flower__g-long__top {
+  top: calc(var(--h) * -1);
+  width: calc(var(--w) + 1cqmin);
+  height: var(--h);
+  border-top-right-radius: 100%;
+  border-right: 0.7cqmin solid var(--c);
+  transform: translate(-0.7cqmin, 1cqmin);
+}
+.flower-scene .flower__g-long__bottom {
+  width: var(--w);
+  height: 50cqmin;
+  transform-origin: bottom center;
+  background-image: linear-gradient(to top, transparent 30%, var(--c));
+  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.5);
+  clip-path: polygon(35% 0, 65% 1%, 100% 100%, 0% 100%);
+}
+.flower-scene .flower__g-right {
+  position: absolute;
+  bottom: 6cqmin;
+  left: -2cqmin;
+  transform-origin: bottom left;
+  transform: rotate(20deg);
+}
+.flower-scene .flower__g-right .leaf {
+  width: 30cqmin;
+  height: 50cqmin;
+  border-top-left-radius: 100%;
+  border-left: 2cqmin solid #079097;
+  background-image: linear-gradient(to bottom, transparent, var(--dark-color) 60%);
+  -webkit-mask-image: linear-gradient(to top, transparent 30%, #079097 60%);
+}
+.flower-scene .flower__g-right--1 {
+  animation: flower-g-right-ans 2.5s linear infinite;
+}
+.flower-scene .flower__g-right--2 {
+  left: 5cqmin;
+  transform: rotateY(-180deg);
+  animation: flower-g-right-ans--2 3s linear infinite;
+}
+.flower-scene .flower__g-right--2 .leaf {
+  height: 75cqmin;
+  filter: blur(0.3cqmin);
+  opacity: 0.8;
+}
+@keyframes flower-g-right-ans {
+  0%, 100% {
+    transform: rotate(20deg);
+  }
+  50% {
+    transform: rotate(24deg) rotateX(-20deg);
+  }
+}
+@keyframes flower-g-right-ans--2 {
+  0%, 100% {
+    transform: rotateY(-180deg) rotate(0deg) rotateX(-20deg);
+  }
+  50% {
+    transform: rotateY(-180deg) rotate(6deg) rotateX(-20deg);
+  }
+}
+.flower-scene .flower__g-front {
+  position: absolute;
+  bottom: 6cqmin;
+  left: 2.5cqmin;
+  z-index: 100;
+  transform-origin: bottom center;
+  transform: rotate(-28deg) rotateY(30deg) scale(1.04);
+  animation: flower__g-front-ans 2s linear infinite;
+}
+@keyframes flower__g-front-ans {
+  0%, 100% {
+    transform: rotate(-28deg) rotateY(30deg) scale(1.04);
+  }
+  50% {
+    transform: rotate(-35deg) rotateY(40deg) scale(1.04);
+  }
+}
+.flower-scene .flower__g-front__line {
+  width: 0.3cqmin;
+  height: 20cqmin;
+  background-image: linear-gradient(to top, transparent, #079097, transparent 100%);
+  position: relative;
+}
+.flower-scene .flower__g-front__leaf-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: bottom left;
+  transform: rotate(10deg);
+}
+.flower-scene .flower__g-front__leaf-wrapper:nth-child(even) {
+  left: 0cqmin;
+  transform: rotateY(-180deg) rotate(5deg);
+  animation: flower__g-front__leaf-left-ans 1s ease-in backwards;
+}
+.flower-scene .flower__g-front__leaf-wrapper:nth-child(odd) {
+  animation: flower__g-front__leaf-ans 1s ease-in backwards;
+}
+.flower-scene .flower__g-front__leaf-wrapper--1 {
+  top: -8cqmin;
+  transform: scale(0.7);
+  animation: flower__g-front__leaf-ans 1s 5.5s ease-in backwards !important;
+}
+.flower-scene .flower__g-front__leaf-wrapper--2 {
+  top: -8cqmin;
+  transform: rotateY(-180deg) scale(0.7) !important;
+  animation: flower__g-front__leaf-left-ans-2 1s 4.6s ease-in backwards !important;
+}
+.flower-scene .flower__g-front__leaf-wrapper--3 {
+  top: -3cqmin;
+  animation: flower__g-front__leaf-ans 1s 4.6s ease-in backwards;
+}
+.flower-scene .flower__g-front__leaf-wrapper--4 {
+  top: -3cqmin;
+  transform: rotateY(-180deg) scale(0.9) !important;
+  animation: flower__g-front__leaf-left-ans-2 1s 4.6s ease-in backwards !important;
+}
+@keyframes flower__g-front__leaf-left-ans-2 {
+  0% {
+    transform: rotateY(-180deg) scale(0);
+  }
+}
+.flower-scene .flower__g-front__leaf-wrapper--5, .flower-scene .flower__g-front__leaf-wrapper--6 {
+  top: 2cqmin;
+}
+.flower-scene .flower__g-front__leaf-wrapper--7, .flower-scene .flower__g-front__leaf-wrapper--8 {
+  top: 6.5cqmin;
+}
+.flower-scene .flower__g-front__leaf-wrapper--2 {
+  animation-delay: 5.2s !important;
+}
+.flower-scene .flower__g-front__leaf-wrapper--3 {
+  animation-delay: 4.9s !important;
+}
+.flower-scene .flower__g-front__leaf-wrapper--5 {
+  animation-delay: 4.3s !important;
+}
+.flower-scene .flower__g-front__leaf-wrapper--6 {
+  animation-delay: 4.1s !important;
+}
+.flower-scene .flower__g-front__leaf-wrapper--7 {
+  animation-delay: 3.8s !important;
+}
+.flower-scene .flower__g-front__leaf-wrapper--8 {
+  animation-delay: 3.5s !important;
+}
+@keyframes flower__g-front__leaf-ans {
+  0% {
+    transform: rotate(10deg) scale(0);
+  }
+}
+@keyframes flower__g-front__leaf-left-ans {
+  0% {
+    transform: rotateY(-180deg) rotate(5deg) scale(0);
+  }
+}
+.flower-scene .flower__g-front__leaf {
+  width: 10cqmin;
+  height: 10cqmin;
+  border-radius: 100% 0% 0% 100%/100% 100% 0% 0%;
+  box-shadow: inset 0 2px 1cqmin hsla(184, 97%, 58%, 0.2);
+  background-image: linear-gradient(to bottom left, transparent, var(--dark-color)), linear-gradient(to bottom right, #159faa 50%, transparent 50%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom right, #159faa 50%, transparent 50%, transparent);
+  mask-image: linear-gradient(to bottom right, #159faa 50%, transparent 50%, transparent);
+}
+.flower-scene .flower__g-fr {
+  position: absolute;
+  bottom: -4cqmin;
+  left: cqmin;
+  transform-origin: bottom left;
+  z-index: 10;
+  animation: flower__g-fr-ans 2s linear infinite;
+}
+@keyframes flower__g-fr-ans {
+  0%, 100% {
+    transform: rotate(2deg);
+  }
+  50% {
+    transform: rotate(4deg);
+  }
+}
+.flower-scene .flower__g-fr .leaf {
+  width: 30cqmin;
+  height: 50cqmin;
+  border-top-left-radius: 100%;
+  border-left: 2cqmin solid #079097;
+  -webkit-mask-image: linear-gradient(to top, transparent 25%, #079097 50%);
+  position: relative;
+  z-index: 1;
+}
+.flower-scene .flower__g-fr__leaf {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 10cqmin;
+  height: 10cqmin;
+  border-radius: 100% 0% 0% 100%/100% 100% 0% 0%;
+  box-shadow: inset 0 2px 1cqmin hsla(184, 97%, 58%, 0.2);
+  background-image: linear-gradient(to bottom left, transparent, var(--dark-color) 98%), linear-gradient(to bottom right, #23f0ff 45%, transparent 50%, transparent);
+  -webkit-mask-image: linear-gradient(135deg, #159faa 40%, transparent 50%, transparent);
+}
+.flower-scene .flower__g-fr__leaf--1 {
+  left: 20cqmin;
+  transform: rotate(45deg);
+  animation: flower__g-fr-leaft-ans-1 0.5s 5.2s linear backwards;
+}
+@keyframes flower__g-fr-leaft-ans-1 {
+  0% {
+    transform-origin: left;
+    transform: rotate(45deg) scale(0);
+  }
+}
+.flower-scene .flower__g-fr__leaf--2 {
+  left: 12cqmin;
+  top: -7cqmin;
+  transform: rotate(25deg) rotateY(-180deg);
+  animation: flower__g-fr-leaft-ans-6 0.5s 5s linear backwards;
+}
+.flower-scene .flower__g-fr__leaf--3 {
+  left: 15cqmin;
+  top: 6cqmin;
+  transform: rotate(55deg);
+  animation: flower__g-fr-leaft-ans-5 0.5s 4.8s linear backwards;
+}
+.flower-scene .flower__g-fr__leaf--4 {
+  left: 6cqmin;
+  top: -2cqmin;
+  transform: rotate(25deg) rotateY(-180deg);
+  animation: flower__g-fr-leaft-ans-6 0.5s 4.6s linear backwards;
+}
+.flower-scene .flower__g-fr__leaf--5 {
+  left: 10cqmin;
+  top: 14cqmin;
+  transform: rotate(55deg);
+  animation: flower__g-fr-leaft-ans-5 0.5s 4.4s linear backwards;
+}
+@keyframes flower__g-fr-leaft-ans-5 {
+  0% {
+    transform-origin: left;
+    transform: rotate(55deg) scale(0);
+  }
+}
+.flower-scene .flower__g-fr__leaf--6 {
+  left: 0cqmin;
+  top: 6cqmin;
+  transform: rotate(25deg) rotateY(-180deg);
+  animation: flower__g-fr-leaft-ans-6 0.5s 4.2s linear backwards;
+}
+@keyframes flower__g-fr-leaft-ans-6 {
+  0% {
+    transform-origin: right;
+    transform: rotate(25deg) rotateY(-180deg) scale(0);
+  }
+}
+.flower-scene .flower__g-fr__leaf--7 {
+  left: 5cqmin;
+  top: 22cqmin;
+  transform: rotate(45deg);
+  animation: flower__g-fr-leaft-ans-7 0.5s 4s linear backwards;
+}
+@keyframes flower__g-fr-leaft-ans-7 {
+  0% {
+    transform-origin: left;
+    transform: rotate(45deg) scale(0);
+  }
+}
+.flower-scene .flower__g-fr__leaf--8 {
+  left: -4cqmin;
+  top: 15cqmin;
+  transform: rotate(15deg) rotateY(-180deg);
+  animation: flower__g-fr-leaft-ans-8 0.5s 3.8s linear backwards;
+}
+@keyframes flower__g-fr-leaft-ans-8 {
+  0% {
+    transform-origin: right;
+    transform: rotate(15deg) rotateY(-180deg) scale(0);
+  }
+}
+.flower-scene .long-g {
+  position: absolute;
+  bottom: 25cqmin;
+  left: -42cqmin;
+  transform-origin: bottom left;
+}
+.flower-scene .long-g--1 {
+  bottom: 0cqmin;
+  transform: scale(0.8) rotate(-5deg);
+}
+.flower-scene .long-g--1 .leaf {
+  -webkit-mask-image: linear-gradient(to top, transparent 40%, #079097 80%) !important;
+}
+.flower-scene .long-g--1 .leaf--1 {
+  --w: 5cqmin;
+  --h: 60cqmin;
+  left: -2cqmin;
+  transform: rotate(3deg) rotateY(-180deg);
+}
+.flower-scene .long-g--2, .flower-scene .long-g--3 {
+  bottom: -3cqmin;
+  left: -35cqmin;
+  transform-origin: center;
+  transform: scale(0.6) rotateX(60deg);
+}
+.flower-scene .long-g--2 .leaf, .flower-scene .long-g--3 .leaf {
+  -webkit-mask-image: linear-gradient(to top, transparent 50%, #079097 80%) !important;
+}
+.flower-scene .long-g--2 .leaf--1, .flower-scene .long-g--3 .leaf--1 {
+  left: -1cqmin;
+  transform: rotateY(-180deg);
+}
+.flower-scene .long-g--3 {
+  left: -17cqmin;
+  bottom: 0cqmin;
+}
+.flower-scene .long-g--3 .leaf {
+  -webkit-mask-image: linear-gradient(to top, transparent 40%, #079097 80%) !important;
+}
+.flower-scene .long-g--4 {
+  left: 25cqmin;
+  bottom: -3cqmin;
+  transform-origin: center;
+  transform: scale(0.6) rotateX(60deg);
+}
+.flower-scene .long-g--4 .leaf {
+  -webkit-mask-image: linear-gradient(to top, transparent 50%, #079097 80%) !important;
+}
+.flower-scene .long-g--5 {
+  left: 42cqmin;
+  bottom: 0cqmin;
+  transform: scale(0.8) rotate(2deg);
+}
+.flower-scene .long-g--6 {
+  left: 0cqmin;
+  bottom: -20cqmin;
+  z-index: 100;
+  filter: blur(0.3cqmin);
+  transform: scale(0.8) rotate(2deg);
+}
+.flower-scene .long-g--7 {
+  left: 35cqmin;
+  bottom: 20cqmin;
+  z-index: -1;
+  filter: blur(0.3cqmin);
+  transform: scale(0.6) rotate(2deg);
+  opacity: 0.7;
+}
+.flower-scene .long-g .leaf {
+  --w: 15cqmin;
+  --h: 40cqmin;
+  --c: #1aaa15;
+  position: absolute;
+  bottom: 0;
+  width: var(--w);
+  height: var(--h);
+  border-top-left-radius: 100%;
+  border-left: 2cqmin solid var(--c);
+  -webkit-mask-image: linear-gradient(to top, transparent 20%, var(--dark-color));
+  transform-origin: bottom center;
+}
+.flower-scene .long-g .leaf--0 {
+  left: 2cqmin;
+  animation: leaf-ans-1 4s linear infinite;
+}
+.flower-scene .long-g .leaf--1 {
+  --w: 5cqmin;
+  --h: 60cqmin;
+  animation: leaf-ans-1 4s linear infinite;
+}
+.flower-scene .long-g .leaf--2 {
+  --w: 10cqmin;
+  --h: 40cqmin;
+  left: -0.5cqmin;
+  bottom: 5cqmin;
+  transform-origin: bottom left;
+  transform: rotateY(-180deg);
+  animation: leaf-ans-2 3s linear infinite;
+}
+.flower-scene .long-g .leaf--3 {
+  --w: 5cqmin;
+  --h: 30cqmin;
+  left: -1cqmin;
+  bottom: 3.2cqmin;
+  transform-origin: bottom left;
+  transform: rotate(-10deg) rotateY(-180deg);
+  animation: leaf-ans-3 3s linear infinite;
+}
+@keyframes leaf-ans-1 {
+  0%, 100% {
+    transform: rotate(-5deg) scale(1);
+  }
+  50% {
+    transform: rotate(5deg) scale(1.1);
+  }
+}
+@keyframes leaf-ans-2 {
+  0%, 100% {
+    transform: rotateY(-180deg) rotate(5deg);
+  }
+  50% {
+    transform: rotateY(-180deg) rotate(0deg) scale(1.1);
+  }
+}
+@keyframes leaf-ans-3 {
+  0%, 100% {
+    transform: rotate(-10deg) rotateY(-180deg);
+  }
+  50% {
+    transform: rotate(-20deg) rotateY(-180deg);
+  }
+}
+.flower-scene .grow-ans {
+  animation: grow-ans 2s var(--d) backwards;
+}
+@keyframes grow-ans {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+@keyframes light-ans {
+  0% {
+    opacity: 0;
+    transform: translateY(0cqmin);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(-5cqmin) translateX(-2cqmin);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-15cqmin) translateX(2cqmin);
+    filter: blur(0.2cqmin);
+  }
+  75% {
+    transform: translateY(-20cqmin) translateX(-2cqmin);
+    filter: blur(0.2cqmin);
+  }
+  100% {
+    transform: translateY(-30cqmin);
+    opacity: 0;
+    filter: blur(1cqmin);
+  }
+}
+@keyframes moving-flower-1 {
+  0%, 100% {
+    transform: rotate(2deg);
+  }
+  50% {
+    transform: rotate(-2deg);
+  }
+}
+@keyframes moving-flower-2 {
+  0%, 100% {
+    transform: rotate(18deg);
+  }
+  50% {
+    transform: rotate(14deg);
+  }
+}
+@keyframes moving-flower-3 {
+  0%, 100% {
+    transform: rotate(-18deg);
+  }
+  50% {
+    transform: rotate(-20deg) rotateY(-10deg);
+  }
+}
+/* حرکت تاب‌خوردنِ عمومی برای شاخه‌های اضافه‌ای که با هر لیوان آب رشد می‌کنند؛
+   زاویه‌ی پایه‌ی هر شاخه با متغیر --base-angle مشخص می‌شود تا هر شاخه در جای خودش باز شود. */
+@keyframes sway-branch {
+  0%, 100% {
+    transform: rotate(calc(var(--base-angle, 0deg) + 2deg)) scale(var(--branch-scale, 1));
+  }
+  50% {
+    transform: rotate(calc(var(--base-angle, 0deg) - 2deg)) scale(var(--branch-scale, 1));
+  }
+}
+@keyframes blooming-leaf-right {
+  0% {
+    transform-origin: left;
+    transform: rotate(70deg) rotateY(30deg) scale(0);
+  }
+}
+@keyframes blooming-leaf-left {
+  0% {
+    transform-origin: right;
+    transform: rotate(-70deg) rotateY(30deg) scale(0);
+  }
+}
+@keyframes grow-flower-tree {
+  0% {
+    height: 0;
+    border-radius: 1cqmin;
+  }
+}
+@keyframes blooming-flower {
+  0% {
+    transform: scale(0);
+  }
+}
+@keyframes moving-grass {
+  0%, 100% {
+    transform: rotate(-48deg) rotateY(40deg);
+  }
+  50% {
+    transform: rotate(-50deg) rotateY(40deg);
+  }
+}
+@keyframes moving-grass--2 {
+  0%, 100% {
+    transform: scale(0.5) rotate(75deg) rotateX(10deg) rotateY(-200deg);
+  }
+  50% {
+    transform: scale(0.5) rotate(79deg) rotateX(10deg) rotateY(-200deg);
+  }
+}
+.flower-scene .growing-grass {
+  animation: growing-grass-ans 1s 2s backwards;
+}
+@keyframes growing-grass-ans {
+  0% {
+    transform: scale(0);
+  }
+}
+.flower-scene .not-loaded * {
+  animation-play-state: paused !important;
+}
 </style>
 </head>
 <body>
@@ -631,6 +1682,28 @@
       </button>
     </div>
   </header>
+
+  <!-- ویجت باغچه: بدون کادر/متن — فقط گلدون قابل جابجایی؛ روی آن که موس می‌رود نشانگر به شکل لیوان آب
+       در می‌آید (پر یا خالی، بسته به این‌که لیوان آب در دسترس باقی مانده یا نه). با کلیک روی گلدون
+       لیوان کج می‌شود و اگر آب داشته باشد، یک شاخه‌ی تازه در باغچه سبز می‌شود. -->
+  <div class="plant-widget" id="plant-widget" style="display:none;">
+    <div class="flower-frame">
+      <div class="flower-scene" id="flower-scene">
+        <div class="flowers" id="flowers-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="water-cursor is-full" id="water-cursor">
+    <svg viewBox="0 0 40 48" width="34" height="42">
+      <path class="wc-outline" d="M9 6 L31 6 L26.5 39 Q26.5 43 22.5 43 L17.5 43 Q13.5 43 13.5 39 Z" fill="#eaf6ff" stroke="#3E6E93" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      <defs>
+        <clipPath id="wc-clip"><path d="M9 6 L31 6 L26.5 39 Q26.5 43 22.5 43 L17.5 43 Q13.5 43 13.5 39 Z"/></clipPath>
+      </defs>
+      <rect class="wc-liquid" x="9" y="16" width="22" height="27" fill="#4E9DCB" clip-path="url(#wc-clip)"/>
+    </svg>
+  </div>
+
 
   <div class="last-update-bar" id="last-update-bar" style="display:none;"></div>
 
@@ -961,6 +2034,8 @@ async function enterApp(user) {
   document.getElementById('user-label').textContent = user.email.split('@')[0];
 
   currentUserId = user.id;
+  document.getElementById('plant-widget').style.display = 'block';
+  initPlantDrag();
   loadLastUpdate();
 
   // بررسی نقش کاربر: سوپروایزر، سرگروه یا نیروی عادی
@@ -1613,10 +2688,323 @@ async function loadTargets(userId) {
       <div class="row-badge">${r.target_count != null ? formatNumber(r.target_count) : '—'}</div>
     </div>
   `).join('');
+
+  // محاسبه‌ی تعداد شاخه‌گل کسب‌شده در این بازه: به‌ازای هر ۲۰ عدد تارگتِ مجموعِ بازه، ۱ شاخه
+  // (مثلاً کسی که ۶۰۰ تارگت زده باشد، ۳۰ شاخه گل خواهد داشت)
+  const earnedCups = cupsForPeriodTotal(periodTotal);
+  updatePlantWidget(earnedCups);
 }
 
 let currentUserId = null;
 let currentPeriodKey = null;
+
+const TARGETS_PER_BRANCH = 20;
+const PLANT_MAX_STAGE = 40; // سقف تعداد شاخه‌ها؛ فراتر از حد فعلیِ نیاز (۳۰) کمی جا برای رشد بیشتر دارد
+
+/* سه طرح پایه‌ی گل داریم (flower--1/2/3). سه شاخه‌ی اول همون طرح‌های اصلی‌ان.
+   از شاخه‌ی چهارم به بعد، با هر لیوان آب، دوباره از همین سه طرح استفاده می‌شه ولی
+   هر شاخه با زاویه و اندازه‌ی متفاوتی باز می‌شه؛ یعنی واقعاً یک «شاخه‌ی تازه»
+   به بوته اضافه می‌شه، نه یک تزئین جداگانه (چمن/برگ و...). */
+
+function flowerLeafsBlock(suffix) {
+  return `
+      <div class="flower__leafs${suffix}">
+        <div class="flower__leaf flower__leaf--1"></div>
+        <div class="flower__leaf flower__leaf--2"></div>
+        <div class="flower__leaf flower__leaf--3"></div>
+        <div class="flower__leaf flower__leaf--4"></div>
+        <div class="flower__white-circle"></div>
+        <div class="flower__light flower__light--1"></div>
+        <div class="flower__light flower__light--2"></div>
+        <div class="flower__light flower__light--3"></div>
+        <div class="flower__light flower__light--4"></div>
+        <div class="flower__light flower__light--5"></div>
+        <div class="flower__light flower__light--6"></div>
+        <div class="flower__light flower__light--7"></div>
+        <div class="flower__light flower__light--8"></div>
+      </div>`;
+}
+
+function flowerLineBlock(leafCount) {
+  let leafs = '';
+  for (let i = 1; i <= leafCount; i++) {
+    leafs += `\n        <div class="flower__line__leaf flower__line__leaf--${i}"></div>`;
+  }
+  return `
+      <div class="flower__line">${leafs}
+      </div>`;
+}
+
+/* تعداد برگ‌های روی ساقه‌ی هر طرح (برای تنوعِ دیداری بین طرح‌ها) */
+const BRANCH_LEAF_COUNT = { 1: 6, 2: 4, 3: 4 };
+
+function branchHTML(variant, leafsSuffix, extraStyle) {
+  const style = extraStyle ? ` style="${extraStyle}"` : '';
+  return `<div class="flower flower--${variant}"${style}>${flowerLeafsBlock(leafsSuffix)}${flowerLineBlock(BRANCH_LEAF_COUNT[variant])}
+    </div>`;
+}
+
+/* زاویه‌ی باز شدنِ شاخه‌های اضافه (چهارم به بعد)؛ به‌ترتیب چپ و راست بازتر می‌شه
+   تا دسته‌گل هر بار پهن‌تر و پرپشت‌تر به‌نظر برسه. کافیه لیست رو طولانی‌تر کرد
+   تا شاخه‌های بیشتری هم پشتیبانی بشه. */
+const EXTRA_BRANCH_ANGLES = [34, -34, 48, -48, 10, -10, 60, -60, 24, -24, 70, -70, 4, -4, 42, -42, 55, -55, 16, -16];
+
+function extraBranchHTML(index) {
+  const variant = (index % 3) + 1;
+  const angle = EXTRA_BRANCH_ANGLES[index % EXTRA_BRANCH_ANGLES.length];
+  const scale = (0.85 + (index % 4) * 0.07).toFixed(2);
+  const style = `animation: sway-branch 4s linear infinite; --base-angle: ${angle}deg; --branch-scale: ${scale};`;
+  return branchHTML(variant, '', style);
+}
+
+const GARDEN_STAGES = [
+  branchHTML(1, '--1'),
+  branchHTML(2, '--2'),
+  branchHTML(3, '--3'),
+  ...Array.from({ length: Math.max(0, PLANT_MAX_STAGE - 3) }, (_, i) => extraBranchHTML(i))
+];
+
+// از هر ۲۰ عدد تارگتِ مجموعِ بازه، ۱ شاخه‌گل ساخته می‌شود (تقسیم صحیح، بدون گرد کردن به بالا)
+function cupsForPeriodTotal(total) {
+  return Math.max(0, Math.floor((Number(total) || 0) / TARGETS_PER_BRANCH));
+}
+
+let plantState = { usedCups: 0, stage: 0, availableCups: 0, earnedCups: 0 };
+
+/* رندر «افزایشی» شاخه‌ها: به‌جای بازسازی کامل innerHTML (که باعث می‌شد همه‌ی
+   شاخه‌های قبلی هم دوباره از اول انیمیشن روییدن/شکفتن را اجرا کنند)، فقط
+   شاخه‌ی(های) تازه با insertAdjacentHTML به انتهای گلدون اضافه می‌شوند و
+   شاخه‌های قبلی دست‌نخورده باقی می‌مانند. فقط در حالتی که تعداد باید کم شود
+   (مثلاً با شروع یک بازه‌ی جدید) کل صحنه از نو ساخته می‌شود. */
+function updatePlantStageVisual(stage) {
+  const container = document.getElementById('flowers-container');
+  if (!container) return;
+  const currentCount = container.children.length;
+
+  if (stage < currentCount) {
+    container.innerHTML = GARDEN_STAGES.slice(0, stage).join('');
+    return;
+  }
+  if (stage > currentCount) {
+    const newBranchesHTML = GARDEN_STAGES.slice(currentCount, stage).join('');
+    container.insertAdjacentHTML('beforeend', newBranchesHTML);
+
+    const flowerScene = document.getElementById('flower-scene');
+    if (flowerScene) {
+      flowerScene.classList.add('watering-flash');
+      setTimeout(() => flowerScene.classList.remove('watering-flash'), 900);
+    }
+  }
+}
+
+function plantStorageKey() {
+  return `plant_state_${currentUserId || 'guest'}_${currentPeriodKey || 'na'}`;
+}
+
+function loadPlantSavedState() {
+  try {
+    const raw = localStorage.getItem(plantStorageKey());
+    if (!raw) return { usedCups: 0, stage: 0 };
+    const parsed = JSON.parse(raw);
+    return {
+      usedCups: Number(parsed.usedCups) || 0,
+      stage: Math.min(Number(parsed.stage) || 0, PLANT_MAX_STAGE)
+    };
+  } catch (e) {
+    return { usedCups: 0, stage: 0 };
+  }
+}
+
+function savePlantState() {
+  try {
+    localStorage.setItem(plantStorageKey(), JSON.stringify({
+      usedCups: plantState.usedCups,
+      stage: plantState.stage
+    }));
+  } catch (e) { /* اگر localStorage در دسترس نبود، مشکلی پیش نمی‌آید */ }
+}
+
+function updateWaterCursorFillState() {
+  const cursor = document.getElementById('water-cursor');
+  if (!cursor) return;
+  cursor.classList.toggle('is-empty', plantState.availableCups < 1);
+  cursor.classList.toggle('is-full', plantState.availableCups >= 1);
+}
+
+function updatePlantWidget(earnedCups) {
+  const saved = loadPlantSavedState();
+  const availableCups = Math.max(0, earnedCups - saved.usedCups);
+
+  plantState = {
+    usedCups: saved.usedCups,
+    stage: saved.stage,
+    availableCups,
+    earnedCups
+  };
+
+  updatePlantStageVisual(saved.stage);
+  updateWaterCursorFillState();
+}
+
+/* با کلیک روی گلدون، اگر لیوان آبی در دسترس باشد یک شاخه‌ی تازه رشد می‌کند و
+   یک لیوان از موجودی کم می‌شود؛ اگر آبی نمانده باشد فقط یک تکانِ خالی (بدون رشد) نشان داده می‌شود. */
+function waterPlantOnce() {
+  const cursor = document.getElementById('water-cursor');
+
+  if (plantState.availableCups < 1) {
+    if (cursor) {
+      cursor.classList.remove('shake');
+      void cursor.offsetWidth; // ری‌استارتِ انیمیشن در صورت کلیک‌های پی‌درپی
+      cursor.classList.add('shake');
+    }
+    return;
+  }
+
+  if (cursor) {
+    cursor.classList.add('pouring');
+    setTimeout(() => cursor.classList.remove('pouring'), 260);
+  }
+
+  const grew = plantState.stage < PLANT_MAX_STAGE;
+  plantState.usedCups += 1;
+  plantState.stage = Math.min(plantState.stage + 1, PLANT_MAX_STAGE);
+  plantState.availableCups = Math.max(0, plantState.earnedCups - plantState.usedCups);
+  savePlantState();
+
+  if (grew) {
+    setTimeout(() => updatePlantStageVisual(plantState.stage), 140);
+  }
+  updateWaterCursorFillState();
+}
+
+/* ---------- جابجا کردن گلدون با کشیدن + آب دادن با کلیک ----------
+   از یک آستانه‌ی حرکتی برای تشخیص «کشیدن» از «کلیک» استفاده می‌شود:
+   اگر انگشت/موس کمی جابه‌جا شود، گلدون جابه‌جا می‌شود؛ اگر تقریباً بدون
+   حرکت رها شود، به‌عنوان کلیکِ آب‌دادن حساب می‌شود. */
+function plantPositionStorageKey() {
+  return `plant_position_${currentUserId || 'guest'}`;
+}
+
+function applyPlantPosition(left, top) {
+  const widget = document.getElementById('plant-widget');
+  if (!widget) return;
+  const maxLeft = Math.max(0, window.innerWidth - widget.offsetWidth);
+  const maxTop = Math.max(0, window.innerHeight - widget.offsetHeight);
+  const clampedLeft = Math.min(Math.max(0, left), maxLeft);
+  const clampedTop = Math.min(Math.max(0, top), maxTop);
+  widget.style.left = `${clampedLeft}px`;
+  widget.style.top = `${clampedTop}px`;
+  widget.style.bottom = 'auto';
+  widget.style.right = 'auto';
+}
+
+function moveWaterCursorTo(clientX, clientY) {
+  const cursor = document.getElementById('water-cursor');
+  if (!cursor) return;
+  // نوکِ لیوان کمی بالاتر و چپ‌تر از نوکِ اشاره‌گر قرار می‌گیرد
+  cursor.style.setProperty('--wc-x', `${clientX - 8}px`);
+  cursor.style.setProperty('--wc-y', `${clientY - 34}px`);
+}
+
+const DRAG_THRESHOLD = 6; // پیکسل
+
+function initPlantDrag() {
+  const widget = document.getElementById('plant-widget');
+  const cursor = document.getElementById('water-cursor');
+  if (!widget || widget.dataset.dragBound) return;
+  widget.dataset.dragBound = '1';
+
+  // موقعیت ذخیره‌شده‌ی این کاربر را اعمال کن؛ در غیر این صورت همان موقعیت پیش‌فرض
+  // (گوشه‌ی پایین صفحه، دور از فهرست تارگت‌ها) که در CSS تعریف شده باقی می‌ماند
+  try {
+    const raw = localStorage.getItem(plantPositionStorageKey());
+    if (raw) {
+      const pos = JSON.parse(raw);
+      if (Number.isFinite(pos.left) && Number.isFinite(pos.top)) {
+        applyPlantPosition(pos.left, pos.top);
+      }
+    }
+  } catch (e) { /* در صورت نبودِ localStorage، موقعیت پیش‌فرض حفظ می‌شود */ }
+
+  let pressed = false;
+  let dragging = false;
+  let startX = 0, startY = 0, startLeft = 0, startTop = 0;
+
+  widget.addEventListener('pointerdown', (e) => {
+    pressed = true;
+    dragging = false;
+    widget.setPointerCapture(e.pointerId);
+    const rect = widget.getBoundingClientRect();
+    startX = e.clientX;
+    startY = e.clientY;
+    startLeft = rect.left;
+    startTop = rect.top;
+  });
+
+  widget.addEventListener('pointermove', (e) => {
+    // نشانگرِ لیوان فقط برای موس دنبال‌کننده‌ی اشاره‌گر است (برای لمسی معنا ندارد)
+    if (e.pointerType === 'mouse' && !dragging) {
+      moveWaterCursorTo(e.clientX, e.clientY);
+    }
+
+    if (!pressed) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+
+    if (!dragging && Math.hypot(dx, dy) > DRAG_THRESHOLD) {
+      dragging = true;
+      widget.classList.add('dragging');
+      widget.style.cursor = 'grabbing';
+      if (cursor) cursor.classList.remove('visible');
+    }
+    if (dragging) {
+      applyPlantPosition(startLeft + dx, startTop + dy);
+    }
+  });
+
+  function endPress(e) {
+    if (!pressed) return;
+    pressed = false;
+
+    if (dragging) {
+      dragging = false;
+      widget.classList.remove('dragging');
+      const rect = widget.getBoundingClientRect();
+      try {
+        localStorage.setItem(plantPositionStorageKey(), JSON.stringify({ left: rect.left, top: rect.top }));
+      } catch (err) { /* بی‌اهمیت */ }
+      if (e && e.pointerType === 'mouse' && cursor) {
+        cursor.classList.add('visible');
+        widget.style.cursor = 'none';
+      }
+    } else {
+      // حرکت به‌اندازه‌ی کافی نبوده: این یک کلیک برای آب‌دادن است
+      waterPlantOnce();
+    }
+  }
+  widget.addEventListener('pointerup', endPress);
+  widget.addEventListener('pointercancel', () => { pressed = false; dragging = false; widget.classList.remove('dragging'); });
+
+  if (cursor) {
+    widget.addEventListener('pointerenter', (e) => {
+      if (e.pointerType === 'mouse') {
+        cursor.classList.add('visible');
+        widget.style.cursor = 'none';
+      }
+    });
+    widget.addEventListener('pointerleave', () => {
+      cursor.classList.remove('visible');
+      widget.style.cursor = 'grab';
+    });
+  }
+
+  // اگر با تغییر اندازه‌ی پنجره گلدون بیرون از صفحه بیفتد، دوباره داخل محدوده می‌آید
+  window.addEventListener('resize', () => {
+    const rect = widget.getBoundingClientRect();
+    applyPlantPosition(rect.left, rect.top);
+  });
+}
+
 let teamBugsFlat = [];
 let supervisorBugsFlat = [];
 let lastBugsKeys = [];
