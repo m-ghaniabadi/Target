@@ -29,10 +29,6 @@
     --danger-soft: #FCEBEA;
     --success: #1FA971;
     --success-soft: #E6F7EF;
-    --amber: #E08A17;
-    --amber-soft: #FBF0DF;
-    --violet: #7C5CE0;
-    --violet-soft: #EFEAFC;
     --radius-lg: 20px;
     --radius: 14px;
     --radius-sm: 9px;
@@ -343,62 +339,32 @@
   }
 
   /* ---------- گزارش کارشناسان تیکت (بازه‌ی ثابت ۲۳ تا ۲۲) ---------- */
-  .ticket-hero-row {
-    display: flex;
-    gap: 14px;
-    margin-bottom: 18px;
-    flex-wrap: wrap;
-  }
-  .ticket-hero-card {
-    flex: 1;
-    min-width: 150px;
-    border-radius: var(--radius-lg);
-    padding: 20px 22px;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 16px 34px -16px rgba(22,86,245,.45);
-  }
-  .ticket-hero-card::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(140px 140px at 88% 0%, rgba(255,255,255,.25), transparent 70%);
-  }
-  .ticket-hero-card.count { background: linear-gradient(135deg, var(--accent-deep) 0%, var(--accent) 100%); }
-  .ticket-hero-card.money { background: linear-gradient(135deg, #0E8F5C 0%, var(--success) 100%); box-shadow: 0 16px 34px -16px rgba(31,169,113,.45); }
-  .ticket-hero-card .label { font-size: 13.5px; color: rgba(255,255,255,.88); font-weight: 700; margin-bottom: 8px; position: relative; }
-  .ticket-hero-card .value { font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -.01em; position: relative; }
-
-  .ticket-report-item { padding: 20px; border-bottom: 1px solid var(--line); }
+  .ticket-report-item { padding: 18px 20px; border-bottom: 1px solid var(--line); }
   .ticket-report-item:last-child { border-bottom: none; }
   .ticket-report-title {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 700;
     color: var(--accent-strong);
     background: var(--accent-soft);
     display: inline-block;
-    padding: 5px 14px;
+    padding: 4px 12px;
     border-radius: 999px;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
   .ticket-report-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 12px 16px;
   }
   .ticket-report-cell {
+    background: var(--surface-tint);
     border-radius: var(--radius-sm);
-    padding: 12px 14px;
-    border: 1px solid transparent;
+    padding: 10px 12px;
   }
-  .ticket-report-cell .k { font-size: 11.5px; margin-bottom: 5px; font-weight: 700; opacity: .75; }
-  .ticket-report-cell .v { font-size: 17px; font-weight: 800; }
-  .ticket-report-cell.normal { background: var(--accent-soft); }
-  .ticket-report-cell.normal .k, .ticket-report-cell.normal .v { color: var(--accent-strong); }
-  .ticket-report-cell.off { background: var(--amber-soft); }
-  .ticket-report-cell.off .k, .ticket-report-cell.off .v { color: var(--amber); }
-  .ticket-report-cell.points { background: var(--violet-soft); grid-column: 1 / -1; }
-  .ticket-report-cell.points .k, .ticket-report-cell.points .v { color: var(--violet); }
+  .ticket-report-cell .k { font-size: 11.5px; color: var(--ink-faint); margin-bottom: 4px; font-weight: 600; }
+  .ticket-report-cell .v { font-size: 15px; color: var(--ink); font-weight: 700; }
+  .ticket-report-cell.wide { grid-column: 1 / -1; }
+  .ticket-report-cell.money .v { color: var(--success); }
 
   .empty-state {
     padding: 52px 20px;
@@ -1948,7 +1914,6 @@
     <!-- نمای کارشناس تیکت: بازه‌ی گزارش ثابته (۲۳ تا ۲۲)، خروجی اکسل نداره، همه‌ی ستون‌ها نمایش داده می‌شن -->
     <div class="panel" id="panel-ticket-agent">
       <div class="period-label" id="ticket-agent-period-label"></div>
-      <div class="ticket-hero-row" id="ticket-agent-hero"></div>
       <div class="list-card" id="ticket-agent-list">
         <div class="loading-state">در حال بارگذاری...</div>
       </div>
@@ -2164,7 +2129,6 @@ async function loadLastUpdate() {
 async function loadTicketAgentReport(userId) {
   const container = document.getElementById('ticket-agent-list');
   const labelEl = document.getElementById('ticket-agent-period-label');
-  const heroEl = document.getElementById('ticket-agent-hero');
 
   const { data, error } = await supabaseClient
     .from(TABLE_TICKET_AGENT_REPORT)
@@ -2172,13 +2136,11 @@ async function loadTicketAgentReport(userId) {
     .eq('user_id', userId);
 
   if (error) {
-    heroEl.innerHTML = '';
     container.innerHTML = `<div class="empty-state">خطا در دریافت اطلاعات: ${error.message}</div>`;
     return;
   }
   if (!data || data.length === 0) {
     labelEl.textContent = '';
-    heroEl.innerHTML = '';
     container.innerHTML = '<div class="empty-state">گزارشی برای شما ثبت نشده است</div>';
     currentPeriodKey = 'ticket-agent';
     updatePlantWidget(0);
@@ -2191,41 +2153,36 @@ async function loadTicketAgentReport(userId) {
   }
   currentPeriodKey = first.period_start_jalali || 'ticket-agent';
 
-  const ticketTotal = data.reduce((sum, r) => sum + (Number(r.ticket_count) || 0), 0);
-  const paymentTotal = data.reduce((sum, r) => sum + (Number(r.total_payment_rials) || 0), 0);
-
-  heroEl.innerHTML = `
-    <div class="ticket-hero-card count">
-      <div class="label">تعداد کل تیکت</div>
-      <div class="value">${formatNumber(ticketTotal)}</div>
-    </div>
-    <div class="ticket-hero-card money">
-      <div class="label">مبلغ قابل پرداخت (ریال)</div>
-      <div class="value">${paymentTotal.toLocaleString('en-US')}</div>
-    </div>
-  `;
-
   container.innerHTML = data.map(r => `
     <div class="ticket-report-item">
       ${r.insure_types ? `<div class="ticket-report-title">${r.insure_types}</div>` : ''}
       <div class="ticket-report-grid">
-        <div class="ticket-report-cell normal">
+        <div class="ticket-report-cell">
           <div class="k">تیکت روزهای عادی</div>
           <div class="v">${formatNumber(r.normal_days_tickets)}</div>
         </div>
-        <div class="ticket-report-cell off">
+        <div class="ticket-report-cell">
           <div class="k">تیکت روزهای تعطیل</div>
           <div class="v">${formatNumber(r.off_days_tickets)}</div>
         </div>
-        <div class="ticket-report-cell points">
+        <div class="ticket-report-cell">
+          <div class="k">تعداد کل تیکت</div>
+          <div class="v">${formatNumber(r.ticket_count)}</div>
+        </div>
+        <div class="ticket-report-cell">
           <div class="k">مجموع امتیاز</div>
           <div class="v">${formatNumber(r.total_points)}</div>
+        </div>
+        <div class="ticket-report-cell wide money">
+          <div class="k">مبلغ قابل پرداخت (ریال)</div>
+          <div class="v">${r.total_payment_rials != null ? Number(r.total_payment_rials).toLocaleString('en-US') : '—'}</div>
         </div>
       </div>
     </div>
   `).join('');
 
   // گلدون کارشناس تیکت بر اساس مجموعِ «تعداد کل تیکت» بازه‌ست: به‌ازای هر ۱۰ تیکت، ۱ لیوان آب
+  const ticketTotal = data.reduce((sum, r) => sum + (Number(r.ticket_count) || 0), 0);
   const earnedCups = cupsForPeriodTotal(ticketTotal, TICKET_TARGETS_PER_BRANCH);
   updatePlantWidget(earnedCups);
 }
