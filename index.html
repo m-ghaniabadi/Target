@@ -338,6 +338,34 @@
     border-radius: 999px;
   }
 
+  /* ---------- گزارش کارشناسان تیکت (بازه‌ی ثابت ۲۳ تا ۲۲) ---------- */
+  .ticket-report-item { padding: 18px 20px; border-bottom: 1px solid var(--line); }
+  .ticket-report-item:last-child { border-bottom: none; }
+  .ticket-report-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent-strong);
+    background: var(--accent-soft);
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    margin-bottom: 14px;
+  }
+  .ticket-report-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 16px;
+  }
+  .ticket-report-cell {
+    background: var(--surface-tint);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+  }
+  .ticket-report-cell .k { font-size: 11.5px; color: var(--ink-faint); margin-bottom: 4px; font-weight: 600; }
+  .ticket-report-cell .v { font-size: 15px; color: var(--ink); font-weight: 700; }
+  .ticket-report-cell.wide { grid-column: 1 / -1; }
+  .ticket-report-cell.money .v { color: var(--success); }
+
   .empty-state {
     padding: 52px 20px;
     text-align: center;
@@ -1882,6 +1910,14 @@
         <div class="loading-state">در حال بارگذاری...</div>
       </div>
     </div>
+
+    <!-- نمای کارشناس تیکت: بازه‌ی گزارش ثابته (۲۳ تا ۲۲)، خروجی اکسل نداره، همه‌ی ستون‌ها نمایش داده می‌شن -->
+    <div class="panel" id="panel-ticket-agent">
+      <div class="period-label" id="ticket-agent-period-label"></div>
+      <div class="list-card" id="ticket-agent-list">
+        <div class="loading-state">در حال بارگذاری...</div>
+      </div>
+    </div>
   </main>
 </div>
 
@@ -1903,6 +1939,7 @@ const TABLE_BUGS = "bug_reports";
 const TABLE_PROFILES = "profiles";
 const TABLE_TEAM_ASSIGNMENTS = "team_assignments";
 const TABLE_META = "app_meta";
+const TABLE_TICKET_AGENT_REPORT = "ticket_agent_report";
 /* ========================================================= */
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -2081,6 +2118,67 @@ async function loadLastUpdate() {
   bar.style.display = 'block';
 }
 
+/* =========================================================
+   نمای کارشناس تیکت
+   - بازه‌ی گزارش ثابته (همون بازه‌ی جاری ۲۳ تا ۲۲ که کل برنامه استفاده می‌کنه)
+   - این گزارش هر بار که ورک‌فلوی n8n اجرا می‌شه، برای کل بازه دوباره از متابیس
+     گرفته و روی همون ردیفِ user_id در جدول ticket_agent_report آپدیت می‌شه
+     (یعنی هر کارشناس فقط یک ردیف داره که همیشه مقدار تازه‌ی کل بازه رو نشون می‌ده)
+   - چون تعداد ردیف‌ها کمه، نیازی به خروجی اکسل نیست و همه‌ی ستون‌ها همینجا نمایش داده می‌شن
+   ========================================================= */
+async function loadTicketAgentReport(userId) {
+  const container = document.getElementById('ticket-agent-list');
+  const labelEl = document.getElementById('ticket-agent-period-label');
+
+  const { data, error } = await supabaseClient
+    .from(TABLE_TICKET_AGENT_REPORT)
+    .select('*')
+    .eq('user_id', userId);
+
+  if (error) {
+    container.innerHTML = `<div class="empty-state">خطا در دریافت اطلاعات: ${error.message}</div>`;
+    return;
+  }
+  if (!data || data.length === 0) {
+    labelEl.textContent = '';
+    container.innerHTML = '<div class="empty-state">گزارشی برای شما ثبت نشده است</div>';
+    return;
+  }
+
+  const first = data[0];
+  if (first.period_start_jalali && first.period_end_jalali) {
+    labelEl.textContent = `بازه‌ی جاری: ${first.period_start_jalali} تا ${first.period_end_jalali}`;
+  }
+
+  container.innerHTML = data.map(r => `
+    <div class="ticket-report-item">
+      ${r.insure_types ? `<div class="ticket-report-title">${r.insure_types}</div>` : ''}
+      <div class="ticket-report-grid">
+        <div class="ticket-report-cell">
+          <div class="k">تیکت روزهای عادی</div>
+          <div class="v">${formatNumber(r.normal_days_tickets)}</div>
+        </div>
+        <div class="ticket-report-cell">
+          <div class="k">تیکت روزهای تعطیل</div>
+          <div class="v">${formatNumber(r.off_days_tickets)}</div>
+        </div>
+        <div class="ticket-report-cell">
+          <div class="k">تعداد کل تیکت</div>
+          <div class="v">${formatNumber(r.ticket_count)}</div>
+        </div>
+        <div class="ticket-report-cell">
+          <div class="k">مجموع امتیاز</div>
+          <div class="v">${formatNumber(r.total_points)}</div>
+        </div>
+        <div class="ticket-report-cell wide money">
+          <div class="k">مبلغ قابل پرداخت (ریال)</div>
+          <div class="v">${r.total_payment_rials != null ? Number(r.total_payment_rials).toLocaleString('en-US') : '—'}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
 async function enterApp(user) {
   loginScreen.style.display = 'none';
   appScreen.style.display = 'block';
@@ -2100,8 +2198,23 @@ async function enterApp(user) {
 
   const isSupervisor = !profileError && profile && profile.role === 'supervisor';
   const isLeader = !profileError && profile && profile.role === 'leader';
+  const isTicketAgent = !profileError && profile && profile.role === 'ticket_agent';
 
-  if (isSupervisor) {
+  if (isTicketAgent) {
+    // نمای کارشناس تیکت: فقط گزارش بازه‌ی ثابت (۲۳ تا ۲۲)، بدون تب‌های دیگر
+    document.getElementById('main-tabs').style.display = 'none';
+    document.getElementById('panel-targets').classList.remove('active');
+    document.getElementById('panel-bugs').classList.remove('active');
+    document.getElementById('team-tabs').style.display = 'none';
+    document.getElementById('panel-team').classList.remove('active');
+    document.getElementById('panel-team-bugs').classList.remove('active');
+    document.getElementById('panel-team-performance').classList.remove('active');
+    document.getElementById('supervisor-tabs').style.display = 'none';
+    document.getElementById('panel-supervisor').classList.remove('active');
+    document.getElementById('panel-supervisor-bugs').classList.remove('active');
+    document.getElementById('panel-ticket-agent').classList.add('active');
+    loadTicketAgentReport(user.id);
+  } else if (isSupervisor) {
     // نمای سوپروایزر: تب‌ها و پنل‌های نیروی عادی و سرگروه مخفی، تب‌های سرگروه‌ها نمایش داده می‌شود
     document.getElementById('main-tabs').style.display = 'none';
     document.getElementById('panel-targets').classList.remove('active');
