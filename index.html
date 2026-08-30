@@ -927,7 +927,7 @@ async function enterApp(user) {
 // هم در نمای سرگروه (لیست مستقیم نفرات) و هم در نمای سوپروایزر (داخل هر سرگروه) استفاده می‌شود
 function buildMemberItemsHtml(membersWithTotals) {
   return membersWithTotals.map(({ m, myRows, myBugs, myTotal }) => {
-    const displayName = m.backoffice_id || m.full_name || '—';
+    const displayName = m.full_name || m.backoffice_id || '—';
 
     const daysHtml = myRows.length
       ? myRows.map(r => `
@@ -1081,7 +1081,7 @@ async function loadTeamView(leaderId) {
   // ---------- تب «خطای تیم»: لیست تخت همه‌ی خطاها به‌همراه backoffice_id کارشناس ----------
   teamBugsFlat = [];
   for (const m of members) {
-    const displayName = m.backoffice_id || m.full_name || '—';
+    const displayName = m.full_name || m.backoffice_id || '—';
     for (const b of (bugsByUser[m.id] || [])) {
       teamBugsFlat.push({ ...b, _memberName: displayName });
     }
@@ -1287,7 +1287,7 @@ async function loadSupervisorView(supervisorId) {
   for (const { l, membersWithTotals } of leadersWithTotals) {
     const leaderName = l.full_name || l.backoffice_id || '—';
     for (const { m, myBugs } of membersWithTotals) {
-      const displayName = m.backoffice_id || m.full_name || '—';
+      const displayName = m.full_name || m.backoffice_id || '—';
       for (const b of myBugs) {
         supervisorBugsFlat.push({ ...b, _memberName: displayName, _leaderName: leaderName });
       }
