@@ -436,6 +436,8 @@
   .ticket-hero-card.count { background: linear-gradient(135deg, var(--accent-deep) 0%, var(--accent) 100%); }
   .ticket-hero-card.money { background: linear-gradient(135deg, #6FB6F2 0%, #A9D4FA 100%); box-shadow: 0 16px 34px -16px rgba(22,86,245,.28); }
   .ticket-hero-card.money .label, .ticket-hero-card.money .value { color: var(--ink); }
+  .ticket-hero-card.bonus { background: linear-gradient(135deg, var(--violet) 0%, #B7A6F2 100%); box-shadow: 0 16px 34px -16px rgba(124,92,224,.4); }
+  .ticket-hero-card.bonus .hint { font-size: 11.5px; color: rgba(255,255,255,.85); margin-top: 6px; position: relative; }
   .ticket-hero-card .label { font-size: 13.5px; color: rgba(255,255,255,.88); font-weight: 700; margin-bottom: 8px; position: relative; }
   .ticket-hero-card .value { font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -.01em; position: relative; }
 
@@ -2310,10 +2312,22 @@ async function loadTicketAgentReport(userId) {
     </div>
   `;
 
+  const reachedBonus = ticketBonusForTotal(ticketTotal);
+  const nextBonus = nextTicketBonusTier(ticketTotal);
+  const bonusAmount = reachedBonus ? reachedBonus.amount : 0;
+  const bonusHint = nextBonus
+    ? `تا پاداش بعدی (${formatNumber(nextBonus.tickets)} تیکت): ${formatNumber(nextBonus.tickets - ticketTotal)} تیکت مانده`
+    : (reachedBonus ? 'به بالاترین پله پاداش رسیدید' : `اولین پله در ${formatNumber(TICKET_BONUS_TIERS[0].tickets)} تیکت`);
+
   heroEl.innerHTML = `
     <div class="ticket-hero-card money">
       <div class="label">مبلغ قابل پرداخت (ریال)</div>
       <div class="value">${Math.round(paymentTotal).toLocaleString('en-US')}</div>
+    </div>
+    <div class="ticket-hero-card bonus">
+      <div class="label">پاداش عملکرد (ریال)</div>
+      <div class="value">${bonusAmount.toLocaleString('en-US')}</div>
+      <div class="hint">${bonusHint}</div>
     </div>
   `;
 
@@ -3038,6 +3052,38 @@ let currentPeriodKey = null;
 
 const TARGETS_PER_BRANCH = 20;
 const TICKET_TARGETS_PER_BRANCH = 10; // برای کارشناسان تیکت: به‌ازای هر ۱۰ تیکت، ۱ لیوان آب
+
+/* پله‌های پاداش کارشناس تیکت (بر اساس تعداد کل تیکت در بازه)
+   مبالغ به ریال هستند (تبدیل‌شده از تومان با ضرب در ۱۰ تا با مبلغ قابل پرداخت هم‌واحد باشند).
+   اگر تعداد تیکت به هیچ پله‌ای نرسیده باشد، پاداش صفر است. */
+const TICKET_BONUS_TIERS = [
+  { tickets: 300,  amount: 12500000  },
+  { tickets: 500,  amount: 37500000  },
+  { tickets: 600,  amount: 43750000  },
+  { tickets: 700,  amount: 50000000  },
+  { tickets: 800,  amount: 56250000  },
+  { tickets: 900,  amount: 62500000  },
+  { tickets: 1100, amount: 75000000  },
+  { tickets: 1250, amount: 93750000  },
+  { tickets: 1500, amount: 112500000 },
+];
+
+// بالاترین پله‌ای که کارشناس با تعداد تیکتش به آن رسیده را برمی‌گرداند (یا null اگر به هیچ پله‌ای نرسیده)
+function ticketBonusForTotal(ticketTotal) {
+  let reached = null;
+  for (const tier of TICKET_BONUS_TIERS) {
+    if (ticketTotal >= tier.tickets) reached = tier;
+  }
+  return reached;
+}
+
+// اولین پله‌ای که هنوز کارشناس بهش نرسیده (برای نمایش راهنمای «تا پله بعدی چقدر مانده»)
+function nextTicketBonusTier(ticketTotal) {
+  for (const tier of TICKET_BONUS_TIERS) {
+    if (ticketTotal < tier.tickets) return tier;
+  }
+  return null;
+}
 const PLANT_MAX_STAGE = 40; // سقف تعداد شاخه‌ها؛ فراتر از حد فعلیِ نیاز (۳۰) کمی جا برای رشد بیشتر دارد
 
 /* سه طرح پایه‌ی گل داریم (flower--1/2/3). سه شاخه‌ی اول همون طرح‌های اصلی‌ان.
