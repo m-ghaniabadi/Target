@@ -684,7 +684,7 @@
     left: 50%;
     bottom: 0;
     transform: translateX(-50%);
-    width: 62cqmin;
+    width: 80cqmin;
     z-index: -1;
     pointer-events: none;
     filter: drop-shadow(0 3px 4px rgba(15,27,51,.18));
@@ -694,7 +694,7 @@
     width: 100%;
     height: auto;
     /* گلدون کمی بلندتر: از پایین ثابت می‌ماند و فقط به سمت بالا کشیده می‌شود */
-    transform: scaleY(1.35);
+    transform: scaleY(1.4);
     transform-origin: bottom center;
   }
 
@@ -771,7 +771,7 @@
   position: absolute;
   /* پایه‌ی ساقه باید از روی خاکِ گلدون شروع بشه، نه از وسط بدنه‌ی آن؛
      چون گلدون بلندتر شد (بالا، scaleY 1.35)، این عدد هم متناسب با آن بالا آمده */
-  bottom: 15cqmin;
+  bottom: 20cqmin;
   transform-origin: bottom center;
   z-index: 10;
   --fl-speed: 0.8s;
