@@ -438,7 +438,7 @@
   .ticket-hero-card.money .label, .ticket-hero-card.money .value { color: var(--ink); }
   .ticket-hero-card.bonus { background: linear-gradient(135deg, var(--violet) 0%, #B7A6F2 100%); box-shadow: 0 16px 34px -16px rgba(124,92,224,.4); }
   .ticket-hero-card.bonus .label, .ticket-hero-card.bonus .value { color: var(--ink); }
-  .ticket-hero-card.bonus .hint { font-size: 11.5px; color: var(--ink-soft); margin-top: 6px; position: relative; }
+  .ticket-hero-card.bonus .hint { font-size: 11.5px; color: #fff; margin-top: 6px; position: relative; }
   .ticket-hero-card .label { font-size: 13.5px; color: rgba(255,255,255,.88); font-weight: 700; margin-bottom: 8px; position: relative; }
   .ticket-hero-card .value { font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -.01em; position: relative; }
 
@@ -1932,7 +1932,7 @@
       <button class="tab-btn" data-tab="bugs">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8a4 4 0 0 1 4 4v4a4 4 0 0 1-8 0v-4a4 4 0 0 1 4-4Z"/><path d="M8 12H4M20 12h-4M12 8V4M9 4l1.5 2M15 4l-1.5 2M6 6l2 2M18 6l-2 2M6 18l2-2M18 18l-2-2"/></svg>
         خطاها
-        <span class="tab-dot" id="bugs-dot"></span>
+        <span class="tab-dot bugs-dot" id="bugs-dot"></span>
       </button>
     </div>
 
@@ -2047,6 +2047,17 @@
     </div>
 
     <!-- نمای کارشناس تیکت: بازه‌ی گزارش ثابته (۲۳ تا ۲۲)، خروجی اکسل نداره، همه‌ی ستون‌ها نمایش داده می‌شن -->
+    <div class="tabs" id="ticket-agent-tabs" style="display:none;">
+      <button class="tab-btn active" data-ticket-agent-tab="ticket-agent">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
+        گزارش عملکرد
+      </button>
+      <button class="tab-btn" data-ticket-agent-tab="bugs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8a4 4 0 0 1 4 4v4a4 4 0 0 1-8 0v-4a4 4 0 0 1 4-4Z"/><path d="M8 12H4M20 12h-4M12 8V4M9 4l1.5 2M15 4l-1.5 2M6 6l2 2M18 6l-2 2M6 18l2-2M18 18l-2-2"/></svg>
+        خطاها
+        <span class="tab-dot bugs-dot" id="ticket-agent-bugs-dot"></span>
+      </button>
+    </div>
     <div class="panel" id="panel-ticket-agent">
       <div class="period-label" id="ticket-agent-period-label"></div>
       <div id="ticket-agent-primary"></div>
@@ -2143,6 +2154,22 @@ document.querySelectorAll('#main-tabs .tab-btn').forEach(btn => {
     document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
     if (btn.dataset.tab === 'bugs') {
       markBugsSeen(lastBugsKeys);
+    }
+  });
+});
+
+// تب‌های نمای کارشناس تیکت (گزارش عملکرد / خطاها)
+document.querySelectorAll('#ticket-agent-tabs .tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#ticket-agent-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-ticket-agent').classList.remove('active');
+    document.getElementById('panel-bugs').classList.remove('active');
+    btn.classList.add('active');
+    const tab = btn.dataset.ticketAgentTab;
+    document.getElementById(tab === 'bugs' ? 'panel-bugs' : 'panel-ticket-agent').classList.add('active');
+    if (tab === 'bugs') {
+      markBugsSeen(lastBugsKeys);
+      loadBugs(currentUserId);
     }
   });
 });
@@ -2354,7 +2381,7 @@ async function loadTicketAgentReport(userId) {
         <div class="ticket-report-cell count">
           <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8a4 4 0 0 1 4 4v4a4 4 0 0 1-8 0v-4a4 4 0 0 1 4-4Z"/><path d="M8 12H4M20 12h-4M12 8V4"/></svg></div>
           <div class="kv">
-            <span class="k">تعداد کل تیکت</span>
+            <span class="k">تعداد کل تیکت های بررسی شده</span>
             <span class="v">${formatNumber(r.ticket_count)}</span>
           </div>
         </div>
@@ -2389,7 +2416,7 @@ async function enterApp(user) {
   const isTicketAgent = !profileError && profile && profile.role === 'ticket_agent';
 
   if (isTicketAgent) {
-    // نمای کارشناس تیکت: فقط گزارش بازه‌ی ثابت (۲۳ تا ۲۲)، بدون تب‌های دیگر
+    // نمای کارشناس تیکت: گزارش بازه‌ی ثابت (۲۳ تا ۲۲) + تب خطاها
     document.getElementById('main-tabs').style.display = 'none';
     document.getElementById('panel-targets').classList.remove('active');
     document.getElementById('panel-bugs').classList.remove('active');
@@ -2400,8 +2427,10 @@ async function enterApp(user) {
     document.getElementById('supervisor-tabs').style.display = 'none';
     document.getElementById('panel-supervisor').classList.remove('active');
     document.getElementById('panel-supervisor-bugs').classList.remove('active');
+    document.getElementById('ticket-agent-tabs').style.display = 'flex';
     document.getElementById('panel-ticket-agent').classList.add('active');
     loadTicketAgentReport(user.id);
+    loadBugs(user.id);
   } else if (isSupervisor) {
     // نمای سوپروایزر: تب‌ها و پنل‌های نیروی عادی و سرگروه مخفی، تب‌های سرگروه‌ها نمایش داده می‌شود
     document.getElementById('main-tabs').style.display = 'none';
@@ -3443,8 +3472,7 @@ function bugsSeenStorageKey() {
 
 function markBugsSeen(keys) {
   try { localStorage.setItem(bugsSeenStorageKey(), JSON.stringify(keys || [])); } catch (e) { /* بی‌خیال، فقط نشونگر کار نمی‌کنه */ }
-  const dot = document.getElementById('bugs-dot');
-  if (dot) dot.style.display = 'none';
+  document.querySelectorAll('.bugs-dot').forEach(dot => { dot.style.display = 'none'; });
 }
 
 function updateBugsNotification(currentKeys) {
@@ -3468,8 +3496,7 @@ function updateBugsNotification(currentKeys) {
   }
 
   const hasNew = currentKeys.some(k => !stored.includes(k));
-  const dot = document.getElementById('bugs-dot');
-  if (dot) dot.style.display = hasNew ? 'inline-block' : 'none';
+  document.querySelectorAll('.bugs-dot').forEach(dot => { dot.style.display = hasNew ? 'inline-block' : 'none'; });
 }
 
 async function loadBugs(userId) {
