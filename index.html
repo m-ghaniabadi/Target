@@ -461,6 +461,71 @@
   .team-details-inner .bug-item:hover { background: none; }
   .bug-agent { font-size: 13px; font-weight: 700; color: var(--accent-deep); margin-bottom: 4px; }
 
+  /* ---------- نمای سرگروه: بررسی عملکرد (نفرات زیر میانگین تیم) ---------- */
+  .perf-below-badge {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--danger);
+    background: var(--danger-soft);
+    padding: 4px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .perf-day-badge-good {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--success);
+    background: var(--success-soft);
+    padding: 3px 10px;
+    border-radius: 999px;
+    min-width: 40px;
+    text-align: center;
+  }
+  .perf-day-badge-missing {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--danger);
+    background: var(--danger-soft);
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+  .perf-all-good {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--success);
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .perf-above-badge {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--success);
+    background: var(--success-soft);
+    padding: 4px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .perf-group-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 14px 20px 10px;
+  }
+  .perf-group-header.is-below { color: var(--danger); }
+  .perf-group-header.is-above { color: var(--success); }
+  .perf-group-count {
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 999px;
+  }
+  .perf-group-header.is-below .perf-group-count { color: var(--danger); background: var(--danger-soft); }
+  .perf-group-header.is-above .perf-group-count { color: var(--success); background: var(--success-soft); }
+  .perf-group-empty { padding: 6px 20px 16px; font-size: 12.5px; color: var(--ink-faint); }
+  .perf-group-divider { height: 1px; background: var(--line); margin: 4px 0; }
+
   /* ---------- نمای سوپروایزر: لیست کشویی سرگروه‌ها (و داخل هرکدام، لیست کشویی نفراتش) ---------- */
   .leader-item { border-bottom: 1px solid var(--line); }
   .leader-item:last-child { border-bottom: none; }
@@ -611,6 +676,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8a4 4 0 0 1 4 4v4a4 4 0 0 1-8 0v-4a4 4 0 0 1 4-4Z"/><path d="M8 12H4M20 12h-4M12 8V4M9 4l1.5 2M15 4l-1.5 2M6 6l2 2M18 6l-2 2M6 18l2-2M18 18l-2-2"/></svg>
         خطای تیم
       </button>
+      <button class="tab-btn" data-team-tab="team-performance">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18.5 8 13 13.5l-3-3L4.5 16"/></svg>
+        بررسی عملکرد
+      </button>
     </div>
 
     <!-- نمای سرگروه: لیست نیروها با مجموع تارگت هر کدام؛ کلیک روی هرکدام ریز روزهای همان بازه را باز می‌کند -->
@@ -633,6 +702,20 @@
         <input type="text" id="team-bugs-search" class="team-bugs-search" placeholder="جستجو بر اساس یوزر بک‌آفیس کارشناس...">
       </div>
       <div class="list-card" id="team-bugs-list">
+        <div class="loading-state">در حال بارگذاری...</div>
+      </div>
+    </div>
+
+    <!-- نمای سرگروه: بررسی عملکرد — میانگین تیم و نفراتی که زیر میانگین هستن، به‌همراه روزهای پرکارشون و روزهایی که صدور نداشتن -->
+    <div class="panel" id="panel-team-performance">
+      <div class="period-label" id="team-performance-period-label"></div>
+      <div class="summary-row">
+        <div class="summary-card">
+          <div class="label">میانگین تیم</div>
+          <div class="value" id="team-performance-average">—</div>
+        </div>
+      </div>
+      <div class="list-card" id="team-performance-list">
         <div class="loading-state">در حال بارگذاری...</div>
       </div>
     </div>
@@ -770,6 +853,7 @@ document.querySelectorAll('#team-tabs .tab-btn').forEach(btn => {
     document.querySelectorAll('#team-tabs .tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('panel-team').classList.remove('active');
     document.getElementById('panel-team-bugs').classList.remove('active');
+    document.getElementById('panel-team-performance').classList.remove('active');
     btn.classList.add('active');
     document.getElementById('panel-' + btn.dataset.teamTab).classList.add('active');
   });
@@ -897,6 +981,7 @@ async function enterApp(user) {
     document.getElementById('team-tabs').style.display = 'none';
     document.getElementById('panel-team').classList.remove('active');
     document.getElementById('panel-team-bugs').classList.remove('active');
+    document.getElementById('panel-team-performance').classList.remove('active');
     document.getElementById('supervisor-tabs').style.display = 'flex';
     document.getElementById('panel-supervisor').classList.add('active');
     document.getElementById('panel-supervisor-bugs').classList.remove('active');
@@ -909,6 +994,7 @@ async function enterApp(user) {
     document.getElementById('team-tabs').style.display = 'flex';
     document.getElementById('panel-team').classList.add('active');
     document.getElementById('panel-team-bugs').classList.remove('active');
+    document.getElementById('panel-team-performance').classList.remove('active');
     loadTeamView(user.id);
   } else {
     loadTargets(user.id);
@@ -1092,6 +1178,127 @@ async function loadTeamView(leaderId) {
 
   // فعال کردن باز/بسته شدن هر ردیف با کلیک
   bindExpandableToggles(container);
+
+  // ---------- تب «بررسی عملکرد»: میانگین تیم + نفرات زیر میانگین ----------
+  document.getElementById('team-performance-period-label').textContent = `بازه‌ی جاری: ${period.startLabel} تا ${period.endLabel}`;
+  renderTeamPerformance(membersWithTotals, rows || []);
+}
+
+/* =========================================================
+   نمای سرگروه — بررسی عملکرد
+   - میانگین تیم = مجموع تارگت تیم / تعداد نفرات
+   - نفراتی که مجموع تارگتشون کمتر از میانگین تیمه، نمایش داده می‌شن
+   - «روزهای پرکار» برای هر نفر: روزهایی که تارگت آن روزش از میانگین
+     روزانه‌ی خودش بیشتر بوده (یعنی روزهایی که بهتر از حد معمول خودش کار کرده)
+   - «روزهای بدون صدور» برای هر نفر: روزهایی که بقیه‌ی اعضای تیم برای آن
+     روز تارگت ثبت کرده‌اند ولی این نفر، برای همون روز هیچ ثبتی نداشته
+   ========================================================= */
+function renderTeamPerformance(membersWithTotals, allTeamRows) {
+  const listEl = document.getElementById('team-performance-list');
+  const avgEl = document.getElementById('team-performance-average');
+
+  if (!membersWithTotals || membersWithTotals.length === 0) {
+    avgEl.textContent = '—';
+    listEl.innerHTML = '<div class="empty-state">نیرویی برای بررسی وجود ندارد</div>';
+    return;
+  }
+
+  const teamAvg = membersWithTotals.reduce((sum, x) => sum + x.myTotal, 0) / membersWithTotals.length;
+  avgEl.textContent = formatNumber(teamAvg);
+
+  // مجموعه‌ی همه‌ی روزهایی که کل تیم (هر عضوی) برای آن‌ها تارگت ثبت کرده، برای تشخیص «روز بدون صدور» هر نفر
+  const allTeamDatesMap = new Map();
+  for (const r of allTeamRows) {
+    if (r.report_date_jalali && !allTeamDatesMap.has(r.report_date_jalali)) {
+      allTeamDatesMap.set(r.report_date_jalali, Number(r.report_date_sort) || 0);
+    }
+  }
+  const allTeamDatesSorted = [...allTeamDatesMap.entries()].sort((a, b) => a[1] - b[1]);
+
+  const belowAvgMembers = membersWithTotals
+    .filter(x => x.myTotal < teamAvg)
+    .sort((a, b) => a.myTotal - b.myTotal);
+  const aboveAvgMembers = membersWithTotals
+    .filter(x => x.myTotal >= teamAvg)
+    .sort((a, b) => b.myTotal - a.myTotal);
+
+  // ساخت آیتم کشویی برای هر نفر: روزهای پرکار (بالاتر از میانگین خودش) و روزهای بدون صدور (نسبت به بقیه‌ی تیم)
+  function buildPerfItem({ m, myRows, myTotal }, isBelow) {
+    const displayName = m.full_name || m.backoffice_id || '—';
+    const ownAvg = myRows.length ? myTotal / myRows.length : 0;
+
+    const goodDays = myRows
+      .filter(r => (Number(r.target_count) || 0) > ownAvg)
+      .sort((a, b) => (Number(b.target_count) || 0) - (Number(a.target_count) || 0));
+
+    const myDatesSet = new Set(myRows.map(r => r.report_date_jalali));
+    const missingDays = allTeamDatesSorted.filter(([date]) => !myDatesSet.has(date));
+
+    const goodDaysHtml = goodDays.length
+      ? goodDays.map(r => `
+          <div class="team-day-row">
+            <span class="team-day-date">${toJalaliDisplay(r.report_date_jalali)}</span>
+            <span class="perf-day-badge-good">${formatNumber(r.target_count)}</span>
+          </div>
+        `).join('')
+      : '<div class="team-empty-days">روز پرکاری (بالاتر از میانگین خودش) ثبت نشده</div>';
+
+    const missingDaysHtml = missingDays.length
+      ? missingDays.map(([date]) => `
+          <div class="team-day-row">
+            <span class="team-day-date">${toJalaliDisplay(date)}</span>
+            <span class="perf-day-badge-missing">بدون صدور</span>
+          </div>
+        `).join('')
+      : '<div class="team-empty-days">روز بدون صدوری ثبت نشده</div>';
+
+    return `
+      <div class="team-item" data-member="${m.id}">
+        <button class="team-header" type="button">
+          <div class="team-name-wrap">
+            <svg class="team-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            <span class="team-name">${displayName}</span>
+          </div>
+          <div class="team-right">
+            <span class="${isBelow ? 'perf-below-badge' : 'perf-above-badge'}">${isBelow ? 'زیر' : 'بالای'} میانگین</span>
+            <span class="team-total">${formatNumber(myTotal)}</span>
+          </div>
+        </button>
+        <div class="team-details">
+          <div class="team-details-inner">
+            <div class="team-section-title">روزهای پرکار (بالاتر از میانگین خودش)</div>
+            ${goodDaysHtml}
+            <div class="team-section-title">روزهای بدون صدور</div>
+            ${missingDaysHtml}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  const belowHtml = belowAvgMembers.length
+    ? belowAvgMembers.map(x => buildPerfItem(x, true)).join('')
+    : '<div class="perf-group-empty">هیچ نیرویی زیر میانگین تیم نیست 🎉</div>';
+
+  const aboveHtml = aboveAvgMembers.length
+    ? aboveAvgMembers.map(x => buildPerfItem(x, false)).join('')
+    : '<div class="perf-group-empty">هیچ نیرویی بالای میانگین تیم نیست</div>';
+
+  listEl.innerHTML = `
+    <div class="perf-group-header is-below">
+      زیر میانگین تیم
+      <span class="perf-group-count">${belowAvgMembers.length} نفر</span>
+    </div>
+    ${belowHtml}
+    <div class="perf-group-divider"></div>
+    <div class="perf-group-header is-above">
+      بالای میانگین تیم
+      <span class="perf-group-count">${aboveAvgMembers.length} نفر</span>
+    </div>
+    ${aboveHtml}
+  `;
+
+  bindExpandableToggles(listEl);
 }
 
 /* =========================================================
