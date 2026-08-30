@@ -257,16 +257,27 @@
   .header-accent-bar {
     position: relative;
     z-index: 1;
-    height: 48px;
-    background: linear-gradient(180deg, rgba(23,169,255,.14) 0%, rgba(23,169,255,.06) 100%);
+    min-height: 48px;
+    background: linear-gradient(135deg, var(--accent-deep) 0%, var(--accent) 100%);
     border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px;
+    text-align: center;
+  }
+  .welcome-text {
+    color: #fff;
+    font-size: 14.5px;
+    font-weight: 700;
   }
   .last-update-bar {
     position: relative;
     z-index: 1;
     text-align: center;
     font-size: 12px;
-    color: var(--accent-strong);
+    font-weight: 600;
+    color: var(--ink);
     padding: 14px 16px 0;
     animation: last-update-blink 1.6s ease-in-out infinite;
   }
@@ -358,6 +369,7 @@
   .ticket-primary-card {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 18px;
     background: linear-gradient(135deg, var(--accent-deep) 0%, var(--accent) 100%);
     border-radius: var(--radius-lg);
@@ -385,9 +397,8 @@
     justify-content: center;
   }
   .ticket-primary-icon svg { width: 28px; height: 28px; stroke: #fff; }
-  .ticket-primary-text { position: relative; }
-  .ticket-primary-text .label { font-size: 14.5px; color: rgba(255,255,255,.9); font-weight: 700; margin-bottom: 6px; }
-  .ticket-primary-text .value { font-size: 34px; font-weight: 800; color: #fff; letter-spacing: -.01em; }
+  .ticket-primary-card .label { font-size: 16px; color: rgba(255,255,255,.9); font-weight: 700; position: relative; }
+  .ticket-primary-card .value { font-size: 30px; font-weight: 800; color: #fff; letter-spacing: -.01em; position: relative; }
 
   .ticket-hero-row {
     display: flex;
@@ -412,6 +423,7 @@
   }
   .ticket-hero-card.count { background: linear-gradient(135deg, var(--accent-deep) 0%, var(--accent) 100%); }
   .ticket-hero-card.money { background: linear-gradient(135deg, #6FB6F2 0%, #A9D4FA 100%); box-shadow: 0 16px 34px -16px rgba(22,86,245,.28); }
+  .ticket-hero-card.money .label, .ticket-hero-card.money .value { color: var(--ink); }
   .ticket-hero-card .label { font-size: 13.5px; color: rgba(255,255,255,.88); font-weight: 700; margin-bottom: 8px; position: relative; }
   .ticket-hero-card .value { font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -.01em; position: relative; }
 
@@ -1828,7 +1840,9 @@
     </div>
   </header>
 
-  <div class="header-accent-bar"></div>
+  <div class="header-accent-bar">
+    <span class="welcome-text" id="welcome-text"></span>
+  </div>
 
   <!-- ویجت باغچه: بدون کادر/متن — فقط گلدون قابل جابجایی؛ روی آن که موس می‌رود نشانگر به شکل لیوان آب
        در می‌آید (پر یا خالی، بسته به این‌که لیوان آب در دسترس باقی مانده یا نه). با کلیک روی گلدون
@@ -2274,13 +2288,8 @@ async function loadTicketAgentReport(userId) {
   // «مجموع تارگت» مهم‌ترین عدد این گزارشه، برای همین جدا و بزرگ‌تر از بقیه نمایش داده می‌شه
   primaryEl.innerHTML = `
     <div class="ticket-primary-card">
-      <div class="ticket-primary-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
-      </div>
-      <div class="ticket-primary-text">
-        <div class="label">مجموع تارگت</div>
-        <div class="value">${formatNumber(pointsTotal)}</div>
-      </div>
+      <div class="label">مجموع تارگت</div>
+      <div class="value">${formatNumber(pointsTotal)}</div>
     </div>
   `;
 
@@ -2338,9 +2347,13 @@ async function enterApp(user) {
   // بررسی نقش کاربر: سوپروایزر، سرگروه یا نیروی عادی
   const { data: profile, error: profileError } = await supabaseClient
     .from(TABLE_PROFILES)
-    .select('role')
+    .select('role, full_name')
     .eq('id', user.id)
     .single();
+
+  // نمایش پیام خوش‌آمدگویی در نوار آبی بالای صفحه
+  const welcomeName = (!profileError && profile && profile.full_name) || user.email.split('@')[0];
+  document.getElementById('welcome-text').textContent = `${welcomeName} عزیز خوش اومدی ❤️`;
 
   const isSupervisor = !profileError && profile && profile.role === 'supervisor';
   const isLeader = !profileError && profile && profile.role === 'leader';
