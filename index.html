@@ -614,8 +614,20 @@
   /* صحنه بدون پس‌زمینه/کادر رندر می‌شود؛ فقط گل‌ها روی زمینه‌ی صفحه دیده می‌شوند */
   .flower-scene { background: transparent !important; }
   .flower-scene .night { display: none; }
-  .flower-scene .flowers { transition: filter .5s ease; }
   .flower-scene.watering-flash .flowers { filter: drop-shadow(0 0 8px rgba(107,240,255,.9)) drop-shadow(0 0 16px rgba(107,240,255,.4)); }
+
+  /* گلدون سفالی زیر گل‌ها؛ پشت گل‌ها و پشت اکثر تزئینات چمنی قرار می‌گیرد */
+  .flower-scene .flower-pot {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    width: 62cqmin;
+    z-index: -1;
+    pointer-events: none;
+    filter: drop-shadow(0 3px 4px rgba(15,27,51,.18));
+  }
+  .flower-scene .flower-pot svg { display: block; width: 100%; height: auto; }
 
   @media (max-width: 760px) {
     .plant-widget { left: 10px; bottom: 10px; width: 132px; }
@@ -683,7 +695,8 @@
 }
 .flower-scene .flowers {
   position: relative;
-  transform: scale(0.9);
+  transform: scale(var(--flowers-scale, 0.9));
+  transition: filter .5s ease, transform .5s cubic-bezier(.32,.64,.3,1);
 }
 .flower-scene .flower {
   position: absolute;
@@ -1689,6 +1702,46 @@
   <div class="plant-widget" id="plant-widget" style="display:none;">
     <div class="flower-frame">
       <div class="flower-scene" id="flower-scene">
+        <div class="flower-pot" aria-hidden="true">
+        <svg viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="گلدون">
+          <defs>
+            <linearGradient id="potBodyGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#E3A567"/>
+              <stop offset="45%" stop-color="#C9884E"/>
+              <stop offset="100%" stop-color="#9C6432"/>
+            </linearGradient>
+            <linearGradient id="potRimGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#EFB878"/>
+              <stop offset="50%" stop-color="#D3985A"/>
+              <stop offset="100%" stop-color="#A76C39"/>
+            </linearGradient>
+            <radialGradient id="soilGrad" cx="38%" cy="30%" r="80%">
+              <stop offset="0%" stop-color="#5B4230"/>
+              <stop offset="55%" stop-color="#3B2A1E"/>
+              <stop offset="100%" stop-color="#241811"/>
+            </radialGradient>
+            <linearGradient id="potShadeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#000000" stop-opacity="0"/>
+              <stop offset="100%" stop-color="#000000" stop-opacity=".22"/>
+            </linearGradient>
+          </defs>
+
+          <ellipse class="pot-floor-shadow" cx="100" cy="58.5" rx="42" ry="3.2" fill="#000" opacity=".14"/>
+
+          <path class="pot-body" d="M42,26 L158,26 L140,54 Q138.5,58 132,58 L68,58 Q61.5,58 60,54 Z" fill="url(#potBodyGrad)"/>
+          <path class="pot-body-shade" d="M42,26 L158,26 L140,54 Q138.5,58 132,58 L68,58 Q61.5,58 60,54 Z" fill="url(#potShadeGrad)"/>
+
+          <path class="pot-rim" d="M30,14 Q30,7 38,7 L162,7 Q170,7 170,14 L170,20 Q170,27 162,27 L38,27 Q30,27 30,20 Z" fill="url(#potRimGrad)"/>
+          <path class="pot-rim-shade" d="M30,14 Q30,7 38,7 L162,7 Q170,7 170,14 L170,20 Q170,27 162,27 L38,27 Q30,27 30,20 Z" fill="url(#potShadeGrad)"/>
+
+          <ellipse class="pot-soil" cx="100" cy="15" rx="50" ry="7.5" fill="url(#soilGrad)"/>
+          <ellipse class="pot-soil-crumb" cx="80" cy="13" rx="4.2" ry="1.7" fill="#6b4d36" opacity=".7"/>
+          <ellipse class="pot-soil-crumb" cx="118" cy="17" rx="3.4" ry="1.4" fill="#6b4d36" opacity=".6"/>
+          <ellipse class="pot-soil-crumb" cx="100" cy="11" rx="3" ry="1.2" fill="#6b4d36" opacity=".55"/>
+
+          <path class="pot-highlight" d="M40,10 Q54,7 68,8.5" stroke="#FBE0BC" stroke-width="2.4" stroke-linecap="round" fill="none" opacity=".55"/>
+        </svg>
+        </div>
         <div class="flowers" id="flowers-container"></div>
       </div>
     </div>
@@ -2771,6 +2824,29 @@ function cupsForPeriodTotal(total) {
 
 let plantState = { usedCups: 0, stage: 0, availableCups: 0, earnedCups: 0 };
 
+/* هرچه شاخه‌های بیشتری اضافه شود، دسته‌گل پهن‌تر باز می‌شود (شاخه‌های اضافه تا
+   ۷۰ درجه از مرکز باز می‌شوند)؛ اگر همیشه با همون اندازه‌ی ثابت رندر بشه، از
+   یک جایی به بعد از کادرِ گلدون (که overflow:hidden داره) می‌زنه بیرون و
+   لبه‌های گل/برگ به‌شکل زشتی بریده می‌شوند. برای همین با افزایش تعداد شاخه‌ها
+   کل دسته‌گل کمی جمع‌وجورتر (مقیاس کوچک‌تر) رندر می‌شود تا همیشه داخل کادر جا
+   شود، بدون اینکه به زاویه یا چیدمان خودِ شاخه‌ها دست بزنیم. */
+const FLOWERS_BASE_SCALE = 0.9;
+const FLOWERS_MIN_SCALE = 0.48;
+const FLOWERS_SHRINK_START_STAGE = 4; // تا سه شاخه‌ی اول اندازه‌ی عادی حفظ می‌شود
+
+function flowersScaleForStage(stage) {
+  if (stage <= FLOWERS_SHRINK_START_STAGE) return FLOWERS_BASE_SCALE;
+  const span = Math.max(1, PLANT_MAX_STAGE - FLOWERS_SHRINK_START_STAGE);
+  const t = Math.min(1, (stage - FLOWERS_SHRINK_START_STAGE) / span);
+  return FLOWERS_BASE_SCALE - (FLOWERS_BASE_SCALE - FLOWERS_MIN_SCALE) * t;
+}
+
+function applyFlowersScale(stage) {
+  const container = document.getElementById('flowers-container');
+  if (!container) return;
+  container.style.setProperty('--flowers-scale', flowersScaleForStage(stage));
+}
+
 /* رندر «افزایشی» شاخه‌ها: به‌جای بازسازی کامل innerHTML (که باعث می‌شد همه‌ی
    شاخه‌های قبلی هم دوباره از اول انیمیشن روییدن/شکفتن را اجرا کنند)، فقط
    شاخه‌ی(های) تازه با insertAdjacentHTML به انتهای گلدون اضافه می‌شوند و
@@ -2780,6 +2856,8 @@ function updatePlantStageVisual(stage) {
   const container = document.getElementById('flowers-container');
   if (!container) return;
   const currentCount = container.children.length;
+
+  applyFlowersScale(stage);
 
   if (stage < currentCount) {
     container.innerHTML = GARDEN_STAGES.slice(0, stage).join('');
