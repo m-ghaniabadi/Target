@@ -257,33 +257,42 @@
   .header-accent-bar {
     position: relative;
     z-index: 1;
-    min-height: 48px;
-    background: linear-gradient(135deg, var(--accent-deep) 0%, var(--accent) 100%);
-    border-bottom: 1px solid var(--line);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 16px;
-    text-align: center;
-  }
-  .welcome-text {
-    color: #fff;
-    font-size: 14.5px;
-    font-weight: 700;
+    height: 10px;
+    margin: 8px 18px 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent-deep) 0%, var(--accent) 100%);
   }
   .last-update-bar {
     position: relative;
     z-index: 1;
-    text-align: center;
+    display: flex;
+    justify-content: center;
+    padding: 14px 16px 0;
+  }
+  .last-update-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 7px 16px;
+    box-shadow: var(--shadow-card);
     font-size: 12px;
     font-weight: 600;
     color: var(--ink);
-    padding: 14px 16px 0;
-    animation: last-update-blink 1.6s ease-in-out infinite;
+  }
+  .last-update-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--danger);
+    flex-shrink: 0;
+    animation: last-update-blink 1.2s ease-in-out infinite;
   }
   @keyframes last-update-blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: .35; }
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(224,69,63,.55); }
+    50% { opacity: .35; box-shadow: 0 0 0 4px rgba(224,69,63,0); }
   }
 
   .summary-row {
@@ -1840,9 +1849,7 @@
     </div>
   </header>
 
-  <div class="header-accent-bar">
-    <span class="welcome-text" id="welcome-text"></span>
-  </div>
+  <div class="header-accent-bar"></div>
 
   <!-- ویجت باغچه: بدون کادر/متن — فقط گلدون قابل جابجایی؛ روی آن که موس می‌رود نشانگر به شکل لیوان آب
        در می‌آید (پر یا خالی، بسته به این‌که لیوان آب در دسترس باقی مانده یا نه). با کلیک روی گلدون
@@ -2236,8 +2243,13 @@ async function loadLastUpdate() {
     bar.style.display = 'none';
     return;
   }
-  bar.textContent = data.updated_label;
-  bar.style.display = 'block';
+  bar.innerHTML = `
+    <span class="last-update-card">
+      <span class="last-update-dot"></span>
+      <span>${data.updated_label}</span>
+    </span>
+  `;
+  bar.style.display = 'flex';
 }
 
 /* =========================================================
@@ -2350,10 +2362,6 @@ async function enterApp(user) {
     .select('role, full_name')
     .eq('id', user.id)
     .single();
-
-  // نمایش پیام خوش‌آمدگویی در نوار آبی بالای صفحه
-  const welcomeName = (!profileError && profile && profile.full_name) || user.email.split('@')[0];
-  document.getElementById('welcome-text').textContent = `${welcomeName} عزیز خوش اومدی ❤️`;
 
   const isSupervisor = !profileError && profile && profile.role === 'supervisor';
   const isLeader = !profileError && profile && profile.role === 'leader';
