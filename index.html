@@ -858,8 +858,9 @@
 .flower-scene .flower {
   position: absolute;
   /* پایه‌ی ساقه باید از روی خاکِ گلدون شروع بشه، نه از وسط بدنه‌ی آن؛
-     چون گلدون بلندتر شد (بالا، scaleY 1.35)، این عدد هم متناسب با آن بالا آمده */
-  bottom: 25cqmin;
+     چون گلدون بلندتر شد (بالا، scaleY 1.35)، این عدد هم متناسب با آن بالا آمده
+     (مقدار بالاتر برده شد تا دسته‌ی گل داخل گلدون قرار بگیرد، نه بیرون از آن) */
+  bottom: 34cqmin;
   transform-origin: bottom center;
   z-index: 10;
   --fl-speed: 0.8s;
@@ -2340,12 +2341,13 @@ async function loadTicketAgentReport(userId) {
     </div>
   `;
 
-  const reachedBonus = ticketBonusForTotal(ticketTotal);
-  const nextBonus = nextTicketBonusTier(ticketTotal);
+  // پله‌های پاداش بر اساس «مجموع تارگت» (pointsTotal) محاسبه می‌شوند، نه تعداد تیکت
+  const reachedBonus = ticketBonusForTotal(pointsTotal);
+  const nextBonus = nextTicketBonusTier(pointsTotal);
   const bonusAmount = reachedBonus ? reachedBonus.amount : 0;
   const totalWithBonus = Math.round(paymentTotal) + bonusAmount;
   const bonusHint = nextBonus
-    ? `تا پاداش بعدی (${formatNumber(nextBonus.tickets)} تیکت): ${formatNumber(nextBonus.tickets - ticketTotal)} تیکت مانده`
+    ? `تا پاداش بعدی (${formatNumber(nextBonus.tickets)} تیکت): ${formatNumber(nextBonus.tickets - pointsTotal)} تیکت مانده`
     : (reachedBonus ? 'به بالاترین پله پاداش رسیدید' : `اولین پله در ${formatNumber(TICKET_BONUS_TIERS[0].tickets)} تیکت`);
 
   heroEl.innerHTML = `
