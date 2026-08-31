@@ -3530,6 +3530,9 @@ function waterPlantOnce() {
 function plantPositionStorageKey() {
   return `plant_position_${currentUserId || 'guest'}`;
 }
+// شماره‌ی نسخه‌ی فرمت مختصات ذخیره‌شده؛ چون ویجت از absolute (نسبت به صفحه) به fixed
+// (نسبت به viewport) تغییر کرد، مقادیر قدیمیِ ذخیره‌شده دیگر معتبر نیستن
+const PLANT_POSITION_VERSION = 2;
 
 function applyPlantPosition(left, top) {
   const widget = document.getElementById('plant-widget');
@@ -3561,13 +3564,19 @@ function initPlantDrag() {
   widget.dataset.dragBound = '1';
 
   // موقعیت ذخیره‌شده‌ی این کاربر را اعمال کن؛ در غیر این صورت همان موقعیت پیش‌فرض
-  // (گوشه‌ی پایین صفحه، دور از فهرست تارگت‌ها) که در CSS تعریف شده باقی می‌ماند
+  // (گوشه‌ی پایین صفحه، دور از فهرست تارگت‌ها) که در CSS تعریف شده باقی می‌ماند.
+  // نکته: از نسخه‌ای که ویجت به position:fixed (نسبت به صفحه‌ی نمایش) تغییر کرد،
+  // مختصات ذخیره‌شده هم باید نسبت به viewport باشن، نه نسبت به صفحه‌ی اسکرول‌شونده؛
+  // برای همین یک نسخه (v) به داده اضافه شده تا موقعیت‌های قدیمی/ناسازگار نادیده گرفته بشن
+  // و ویجت به‌جای پرش به یک نقطه‌ی اشتباه، سر جای پیش‌فرض خودش بمونه.
   try {
     const raw = localStorage.getItem(plantPositionStorageKey());
     if (raw) {
       const pos = JSON.parse(raw);
-      if (Number.isFinite(pos.left) && Number.isFinite(pos.top)) {
+      if (pos.v === PLANT_POSITION_VERSION && Number.isFinite(pos.left) && Number.isFinite(pos.top)) {
         applyPlantPosition(pos.left, pos.top);
+      } else {
+        localStorage.removeItem(plantPositionStorageKey());
       }
     }
   } catch (e) { /* در صورت نبودِ localStorage، موقعیت پیش‌فرض حفظ می‌شود */ }
@@ -3617,7 +3626,7 @@ function initPlantDrag() {
       widget.classList.remove('dragging');
       const rect = widget.getBoundingClientRect();
       try {
-        localStorage.setItem(plantPositionStorageKey(), JSON.stringify({ left: rect.left, top: rect.top }));
+        localStorage.setItem(plantPositionStorageKey(), JSON.stringify({ left: rect.left, top: rect.top, v: PLANT_POSITION_VERSION }));
       } catch (err) { /* بی‌اهمیت */ }
       if (e && e.pointerType === 'mouse' && cursor) {
         cursor.classList.add('visible');
