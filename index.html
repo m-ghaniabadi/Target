@@ -489,7 +489,7 @@
   .ticket-report-cell.count .k, .ticket-report-cell.count .v, .ticket-report-cell.count .icon svg { color: var(--violet); stroke: var(--violet); }
 
   /* ---------- نسخه‌ی جمع‌وجورترِ کارت‌های گزارش کارشناس تیکت، مخصوص دیتیل بازشونده‌ی هر نفر
-       در تب «کارشناسان تیکت» نمای سرگروه (لازم نیست دقیقاً مثل نمای شخصیِ خودِ کارشناس باشه) ---------- */
+       در تب «کارشناسان تیکت» نمای سرگروه ---------- */
   .team-details-inner .ticket-primary-card {
     padding: 14px 16px;
     margin-bottom: 10px;
@@ -880,8 +880,7 @@
 }
 .flower-scene .flower {
   position: absolute;
-  /* پایه‌ی ساقه باید از روی خاکِ گلدون شروع بشه، نه از وسط بدنه‌ی آن؛
-     این عدد کم شد تا فاصله‌ی گل با گلدون کمتر بشه و ساقه از داخل گلدون شروع بشه */
+  /* پایه‌ی ساقه باید از روی خاکِ گلدون شروع بشه، نه از وسط بدنه‌ی آن */
   bottom: 28cqmin;
   transform-origin: bottom center;
   z-index: 10;
@@ -3536,8 +3535,7 @@ function waterPlantOnce() {
 function plantPositionStorageKey() {
   return `plant_position_${currentUserId || 'guest'}`;
 }
-// شماره‌ی نسخه‌ی فرمت مختصات ذخیره‌شده؛ چون ویجت از absolute (نسبت به صفحه) به fixed
-// (نسبت به viewport) تغییر کرد، مقادیر قدیمیِ ذخیره‌شده دیگر معتبر نیستن
+// شماره‌ی فرمت مختصات ذخیره‌شده (نسبت به viewport)؛ برای رد کردن مقادیر ناسازگار قدیمی
 const PLANT_POSITION_VERSION = 2;
 
 function applyPlantPosition(left, top) {
@@ -3571,10 +3569,7 @@ function initPlantDrag() {
 
   // موقعیت ذخیره‌شده‌ی این کاربر را اعمال کن؛ در غیر این صورت همان موقعیت پیش‌فرض
   // (گوشه‌ی پایین صفحه، دور از فهرست تارگت‌ها) که در CSS تعریف شده باقی می‌ماند.
-  // نکته: از نسخه‌ای که ویجت به position:fixed (نسبت به صفحه‌ی نمایش) تغییر کرد،
-  // مختصات ذخیره‌شده هم باید نسبت به viewport باشن، نه نسبت به صفحه‌ی اسکرول‌شونده؛
-  // برای همین یک نسخه (v) به داده اضافه شده تا موقعیت‌های قدیمی/ناسازگار نادیده گرفته بشن
-  // و ویجت به‌جای پرش به یک نقطه‌ی اشتباه، سر جای پیش‌فرض خودش بمونه.
+  // مختصات ذخیره‌شده نسبت به viewport هستن؛ نسخه‌ی ناسازگار/قدیمی نادیده گرفته می‌شه.
   try {
     const raw = localStorage.getItem(plantPositionStorageKey());
     if (raw) {
