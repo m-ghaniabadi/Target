@@ -1261,20 +1261,20 @@ function buildTicketAgentReportBlocks(data) {
   // نکته‌ی مهم: وقتی چند ردیف (برای چند رشته‌ی بیمه) داریم، هرکدوم میانگین زمان پاسخِ خودشونو دارن؛
   // برداشتن فقط ردیف اول باعث می‌شد عدد اشتباه (مثلاً میانگینِ کم‌تیکت‌ترین رشته) نمایش داده بشه.
   // برای این‌که دقیقاً با گزارش ۱۸۰۶ یکی بشه، باید میانگین وزنی بر اساس تعداد تیکتِ هر ردیف حساب بشه.
-  const responseRows = data.filter(r => r.avg_response_hours !== null && r.avg_response_hours !== undefined);
-  let avgResponseHtml = '';
-  if (responseRows.length) {
-    const weightedSum = responseRows.reduce((sum, r) => sum + (Number(r.avg_response_hours) * (Number(r.ticket_count) || 0)), 0);
-    const weightTotal = responseRows.reduce((sum, r) => sum + (Number(r.ticket_count) || 0), 0);
-    const avgResponseHours = weightTotal > 0
-      ? weightedSum / weightTotal
-      : responseRows.reduce((sum, r) => sum + Number(r.avg_response_hours), 0) / responseRows.length;
-    avgResponseHtml = `
-      <div class="ticket-avg-response-card">
-        <div class="label">میانگین زمان پاسخگویی به تیکت</div>
-        <div class="value">${formatNumber(avgResponseHours)} ساعت</div>
-      </div>
-    `;
+//  const responseRows = data.filter(r => r.avg_response_hours !== null && r.avg_response_hours !== undefined);
+//  let avgResponseHtml = '';
+ // if (responseRows.length) {
+ //   const weightedSum = responseRows.reduce((sum, r) => sum + (Number(r.avg_response_hours) * (Number(r.ticket_count) || 0)), 0);
+   // const weightTotal = responseRows.reduce((sum, r) => sum + (Number(r.ticket_count) || 0), 0);
+   // const avgResponseHours = weightTotal > 0
+   //   ? weightedSum / weightTotal
+   //   : responseRows.reduce((sum, r) => sum + Number(r.avg_response_hours), 0) / responseRows.length;
+   // avgResponseHtml = `
+  //    <div class="ticket-avg-response-card">
+  //      <div class="label">میانگین زمان پاسخگویی به تیکت</div>
+ //       <div class="value">${formatNumber(avgResponseHours)} ساعت</div>
+ //     </div>
+  //  `;
   }
   primaryHtml += avgResponseHtml;
 
