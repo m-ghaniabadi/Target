@@ -860,7 +860,7 @@
   /* پایه‌ی ساقه باید از روی خاکِ گلدون شروع بشه، نه از وسط بدنه‌ی آن؛
      چون گلدون بلندتر شد (بالا، scaleY 1.35)، این عدد هم متناسب با آن بالا آمده
      (مقدار بالاتر برده شد تا دسته‌ی گل داخل گلدون قرار بگیرد، نه بیرون از آن) */
-  bottom: 49cqmin;
+  bottom: 50cqmin;
   transform-origin: bottom center;
   z-index: 10;
   --fl-speed: 0.8s;
@@ -2416,6 +2416,15 @@ async function loadTicketAgentReport(userId) {
             <span class="v">${formatNumber(r.ticket_count)}</span>
           </div>
         </div>
+        ${r.discount_removal_count ? `
+        <div class="ticket-report-cell count">
+          <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></div>
+          <div class="kv">
+            <span class="k">الحاقیه حذف تخفیفات</span>
+            <span class="v">${formatNumber(r.discount_removal_count)}</span>
+          </div>
+        </div>
+        ` : ''}
       </div>
     </div>
   `).join('');
@@ -3119,15 +3128,11 @@ const TICKET_TARGETS_PER_BRANCH = 10; // برای کارشناسان تیکت: �
    مبالغ به ریال هستند (تبدیل‌شده از تومان با ضرب در ۱۰ تا با مبلغ قابل پرداخت هم‌واحد باشند).
    اگر تعداد تیکت به هیچ پله‌ای نرسیده باشد، پاداش صفر است. */
 const TICKET_BONUS_TIERS = [
-  { tickets: 300,  amount: 12500000  },
-  { tickets: 500,  amount: 37500000  },
-  { tickets: 600,  amount: 43750000  },
-  { tickets: 700,  amount: 50000000  },
-  { tickets: 800,  amount: 56250000  },
-  { tickets: 900,  amount: 62500000  },
-  { tickets: 1100, amount: 75000000  },
-  { tickets: 1250, amount: 93750000  },
-  { tickets: 1500, amount: 112500000 },
+  { tickets: 300,  amount: 10000000 },
+  { tickets: 450,  amount: 25000000 },
+  { tickets: 600,  amount: 35000000 },
+  { tickets: 800,  amount: 45000000 },
+  { tickets: 1100, amount: 60000000 },
 ];
 
 /* پله‌های پاداش کارشناس تیکت که insure_types آن‌ها «بدنه» است (نرخ‌ها/پاداش‌ها متفاوت از سایر انواع بیمه‌ست)
