@@ -860,7 +860,7 @@
   /* پایه‌ی ساقه باید از روی خاکِ گلدون شروع بشه، نه از وسط بدنه‌ی آن؛
      چون گلدون بلندتر شد (بالا، scaleY 1.35)، این عدد هم متناسب با آن بالا آمده
      (مقدار بالاتر برده شد تا دسته‌ی گل داخل گلدون قرار بگیرد، نه بیرون از آن) */
-  bottom: 45cqmin;
+  bottom: 49cqmin;
   transform-origin: bottom center;
   z-index: 10;
   --fl-speed: 0.8s;
@@ -1950,12 +1950,6 @@
       </div>
     </div>
 
-    <div class="panel" id="panel-bugs">
-      <div class="list-card" id="bugs-list">
-        <div class="loading-state">در حال بارگذاری...</div>
-      </div>
-    </div>
-
     <!-- نمای سرگروه: تب‌های تیم -->
     <div class="tabs" id="team-tabs" style="display:none;">
       <button class="tab-btn active" data-team-tab="team">
@@ -2066,6 +2060,15 @@
         <div class="loading-state">در حال بارگذاری...</div>
       </div>
       <div class="ticket-hero-row" id="ticket-agent-hero"></div>
+    </div>
+
+    <!-- کادر خطاها (بین نمای کارشناسِ تارگت و کارشناسِ تیکت مشترک است؛
+         عمداً اینجا و بعد از هر دو گروه تب قرار گرفته تا همیشه زیرِ تب‌های فعال بیفتد،
+         نه بالای آن‌ها -->
+    <div class="panel" id="panel-bugs">
+      <div class="list-card" id="bugs-list">
+        <div class="loading-state">در حال بارگذاری...</div>
+      </div>
     </div>
   </main>
 </div>
