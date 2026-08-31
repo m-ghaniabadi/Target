@@ -2336,22 +2336,48 @@ async function loadTicketAgentReport(userId) {
   const pointsTotal = data.reduce((sum, r) => sum + (Number(r.total_points) || 0), 0);
   const paymentTotal = data.reduce((sum, r) => sum + (Number(r.total_payment_rials) || 0), 0);
 
-  // «مجموع تارگت» مهم‌ترین عدد این گزارشه، برای همین جدا و بزرگ‌تر از بقیه نمایش داده می‌شه
-  primaryEl.innerHTML = `
-    <div class="ticket-primary-card">
-      <div class="label">مجموع تارگت</div>
-      <div class="value">${formatNumber(pointsTotal)}</div>
-    </div>
-  `;
+  /* اگر کارشناس بیش از یک رشته (insure_types) داشته باشه (مثلاً هم «بدنه» هم «ثالث»)،
+     هم مجموع تارگت و هم پله‌ی پاداش باید جدا جدا برای هر رشته حساب و نمایش داده بشه */
+  const groupsMap = new Map();
+  data.forEach(r => {
+    const key = r.insure_types || 'سایر';
+    const g = groupsMap.get(key) || { points: 0 };
+    g.points += Number(r.total_points) || 0;
+    groupsMap.set(key, g);
+  });
 
-  // پله‌های پاداش بر اساس «مجموع تارگت» (pointsTotal) محاسبه می‌شوند، نه تعداد تیکت
-  const reachedBonus = ticketBonusForTotal(pointsTotal);
-  const nextBonus = nextTicketBonusTier(pointsTotal);
-  const bonusAmount = reachedBonus ? reachedBonus.amount : 0;
+  // «مجموع تارگت» مهم‌ترین عدد این گزارشه، برای همین جدا و بزرگ‌تر از بقیه نمایش داده می‌شه؛
+  // اگر بیش از یک رشته وجود داشته باشه، به همین شکل یک کارت دیگه برای رشته‌ی دوم زیرش اضافه می‌شه
+  if (groupsMap.size <= 1) {
+    primaryEl.innerHTML = `
+      <div class="ticket-primary-card">
+        <div class="label">مجموع تارگت</div>
+        <div class="value">${formatNumber(pointsTotal)}</div>
+      </div>
+    `;
+  } else {
+    primaryEl.innerHTML = Array.from(groupsMap.entries()).map(([insureType, g]) => `
+      <div class="ticket-primary-card">
+        <div class="label">مجموع تارگت — ${insureType}</div>
+        <div class="value">${formatNumber(g.points)}</div>
+      </div>
+    `).join('');
+  }
+
+  let bonusAmount = 0;
+  const bonusHints = [];
+  groupsMap.forEach((g, insureType) => {
+    const tiers = tierTableForInsureType(insureType);
+    const reached = ticketBonusForTotal(g.points, tiers);
+    const next = nextTicketBonusTier(g.points, tiers);
+    bonusAmount += reached ? reached.amount : 0;
+    const line = next
+      ? `${insureType} — تا پاداش بعدی (${formatNumber(next.tickets)} تیکت): ${formatNumber(next.tickets - g.points)} تیکت مانده`
+      : (reached ? `${insureType} — به بالاترین پله پاداش رسیدید` : `${insureType} — اولین پله در ${formatNumber(tiers[0].tickets)} تیکت`);
+    bonusHints.push(line);
+  });
   const totalWithBonus = Math.round(paymentTotal) + bonusAmount;
-  const bonusHint = nextBonus
-    ? `تا پاداش بعدی (${formatNumber(nextBonus.tickets)} تیکت): ${formatNumber(nextBonus.tickets - pointsTotal)} تیکت مانده`
-    : (reachedBonus ? 'به بالاترین پله پاداش رسیدید' : `اولین پله در ${formatNumber(TICKET_BONUS_TIERS[0].tickets)} تیکت`);
+  const bonusHint = bonusHints.join('<br>');
 
   heroEl.innerHTML = `
     <div class="ticket-hero-card money">
@@ -3104,18 +3130,33 @@ const TICKET_BONUS_TIERS = [
   { tickets: 1500, amount: 112500000 },
 ];
 
-// بالاترین پله‌ای که کارشناس با تعداد تیکتش به آن رسیده را برمی‌گرداند (یا null اگر به هیچ پله‌ای نرسیده)
-function ticketBonusForTotal(ticketTotal) {
+/* پله‌های پاداش کارشناس تیکت که insure_types آن‌ها «بدنه» است (نرخ‌ها/پاداش‌ها متفاوت از سایر انواع بیمه‌ست)
+   مبالغ تصویر به تومان بودند و اینجا ×۱۰ شده‌اند تا با ریال هم‌واحد باشند */
+const TICKET_BONUS_TIERS_BODY = [
+  { tickets: 300,  amount: 10000000 },
+  { tickets: 450,  amount: 25000000 },
+  { tickets: 600,  amount: 35000000 },
+  { tickets: 800,  amount: 45000000 },
+  { tickets: 1100, amount: 60000000 },
+];
+
+// بر اساس insure_types هر ردیف، جدول پله‌ی پاداش مناسب را برمی‌گرداند
+function tierTableForInsureType(insureType) {
+  return insureType === 'بدنه' ? TICKET_BONUS_TIERS_BODY : TICKET_BONUS_TIERS;
+}
+
+
+function ticketBonusForTotal(ticketTotal, tiers = TICKET_BONUS_TIERS) {
   let reached = null;
-  for (const tier of TICKET_BONUS_TIERS) {
+  for (const tier of tiers) {
     if (ticketTotal >= tier.tickets) reached = tier;
   }
   return reached;
 }
 
 // اولین پله‌ای که هنوز کارشناس بهش نرسیده (برای نمایش راهنمای «تا پله بعدی چقدر مانده»)
-function nextTicketBonusTier(ticketTotal) {
-  for (const tier of TICKET_BONUS_TIERS) {
+function nextTicketBonusTier(ticketTotal, tiers = TICKET_BONUS_TIERS) {
+  for (const tier of tiers) {
     if (ticketTotal < tier.tickets) return tier;
   }
   return null;
