@@ -860,7 +860,7 @@
   /* پایه‌ی ساقه باید از روی خاکِ گلدون شروع بشه، نه از وسط بدنه‌ی آن؛
      چون گلدون بلندتر شد (بالا، scaleY 1.35)، این عدد هم متناسب با آن بالا آمده
      (مقدار بالاتر برده شد تا دسته‌ی گل داخل گلدون قرار بگیرد، نه بیرون از آن) */
-  bottom: 40cqmin;
+  bottom: 50cqmin;
   transform-origin: bottom center;
   z-index: 10;
   --fl-speed: 0.8s;
@@ -1964,6 +1964,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18.5 8 13 13.5l-3-3L4.5 16"/></svg>
         بررسی عملکرد
       </button>
+      <button class="tab-btn" data-team-tab="team-ticket-agents">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8a4 4 0 0 1 4 4v4a4 4 0 0 1-8 0v-4a4 4 0 0 1 4-4Z"/><path d="M8 12H4M20 12h-4M12 8V4"/></svg>
+        کارشناسان تیکت
+      </button>
     </div>
 
     <!-- نمای سرگروه: لیست نیروها با مجموع تارگت هر کدام؛ کلیک روی هرکدام ریز روزهای همان بازه را باز می‌کند -->
@@ -2000,6 +2004,21 @@
         </div>
       </div>
       <div class="list-card" id="team-performance-list">
+        <div class="loading-state">در حال بارگذاری...</div>
+      </div>
+    </div>
+
+    <!-- نمای سرگروه: کارشناسان تیکت — نیروهایی که role آن‌ها ticket_agent است؛
+         تارگتشون (مجموع امتیاز) از جدول ticket_agent_report خونده می‌شه، نه daily_targets -->
+    <div class="panel" id="panel-team-ticket-agents">
+      <div class="period-label" id="team-ticket-agents-period-label"></div>
+      <div class="summary-row">
+        <div class="summary-card">
+          <div class="label">مجموع تارگت کارشناسان تیکت</div>
+          <div class="value" id="team-ticket-agents-total">—</div>
+        </div>
+      </div>
+      <div class="list-card" id="team-ticket-agents-list">
         <div class="loading-state">در حال بارگذاری...</div>
       </div>
     </div>
@@ -2185,6 +2204,7 @@ document.querySelectorAll('#team-tabs .tab-btn').forEach(btn => {
     document.getElementById('panel-team').classList.remove('active');
     document.getElementById('panel-team-bugs').classList.remove('active');
     document.getElementById('panel-team-performance').classList.remove('active');
+    document.getElementById('panel-team-ticket-agents').classList.remove('active');
     btn.classList.add('active');
     document.getElementById('panel-' + btn.dataset.teamTab).classList.add('active');
   });
@@ -2464,6 +2484,7 @@ async function enterApp(user) {
     document.getElementById('panel-team').classList.remove('active');
     document.getElementById('panel-team-bugs').classList.remove('active');
     document.getElementById('panel-team-performance').classList.remove('active');
+    document.getElementById('panel-team-ticket-agents').classList.remove('active');
     document.getElementById('supervisor-tabs').style.display = 'none';
     document.getElementById('panel-supervisor').classList.remove('active');
     document.getElementById('panel-supervisor-bugs').classList.remove('active');
@@ -2480,6 +2501,7 @@ async function enterApp(user) {
     document.getElementById('panel-team').classList.remove('active');
     document.getElementById('panel-team-bugs').classList.remove('active');
     document.getElementById('panel-team-performance').classList.remove('active');
+    document.getElementById('panel-team-ticket-agents').classList.remove('active');
     document.getElementById('supervisor-tabs').style.display = 'flex';
     document.getElementById('panel-supervisor').classList.add('active');
     document.getElementById('panel-supervisor-bugs').classList.remove('active');
@@ -2493,6 +2515,7 @@ async function enterApp(user) {
     document.getElementById('panel-team').classList.add('active');
     document.getElementById('panel-team-bugs').classList.remove('active');
     document.getElementById('panel-team-performance').classList.remove('active');
+    document.getElementById('panel-team-ticket-agents').classList.remove('active');
     loadTeamView(user.id);
   } else {
     loadTargets(user.id);
@@ -2587,9 +2610,9 @@ async function loadTeamView(leaderId) {
   const memberIdList = assignments.map(a => a.member_id);
 
   // ۲) گرفتن اطلاعات پروفایل همان نیروها
-  const { data: members, error: membersError } = await supabaseClient
+  const { data: allMembers, error: membersError } = await supabaseClient
     .from(TABLE_PROFILES)
-    .select('id, backoffice_id, full_name')
+    .select('id, backoffice_id, full_name, role')
     .in('id', memberIdList);
 
   if (membersError) {
@@ -2597,9 +2620,25 @@ async function loadTeamView(leaderId) {
     document.getElementById('team-period-total').textContent = '—';
     return;
   }
-  if (!members || members.length === 0) {
+  if (!allMembers || allMembers.length === 0) {
     container.innerHTML = '<div class="empty-state">هنوز نیرویی به شما اساین نشده است</div>';
     document.getElementById('team-period-total').textContent = '۰';
+    return;
+  }
+
+  // کارشناسان تیکت (role = ticket_agent) جدا می‌شوند چون تارگتشون از جدول
+  // ticket_agent_report خونده می‌شه، نه daily_targets؛ در تب مجزای «کارشناسان تیکت» نمایش داده می‌شن
+  const ticketAgentMembers = allMembers.filter(m => m.role === 'ticket_agent');
+  const members = allMembers.filter(m => m.role !== 'ticket_agent');
+
+  loadTeamTicketAgents(ticketAgentMembers, period);
+
+  if (members.length === 0) {
+    container.innerHTML = '<div class="empty-state">هنوز نیرویی به شما اساین نشده است</div>';
+    document.getElementById('team-period-total').textContent = '۰';
+    renderTeamPerformance([], []);
+    teamBugsFlat = [];
+    renderTeamBugsList(teamBugsFlat);
     return;
   }
 
@@ -2680,6 +2719,93 @@ async function loadTeamView(leaderId) {
   // ---------- تب «بررسی عملکرد»: میانگین تیم + نفرات زیر میانگین ----------
   document.getElementById('team-performance-period-label').textContent = `بازه‌ی جاری: ${period.startLabel} تا ${period.endLabel}`;
   renderTeamPerformance(membersWithTotals, rows || []);
+}
+
+/* =========================================================
+   نمای سرگروه — تب «کارشناسان تیکت»
+   - نیروهایی که role آن‌ها در profiles برابر ticket_agent است
+   - تارگت هرکدام (مجموع امتیاز) از جدول ticket_agent_report خونده می‌شه
+     (دقیقاً مثل نمای شخصیِ خودِ کارشناس تیکت، بدون فیلتر بازه، چون این جدول
+     همیشه فقط داده‌ی بازه‌ی جاری رو نگه می‌داره)
+   - کلیک روی هر نفر، ریز رشته‌ها/امتیازش رو باز/بسته می‌کنه
+   ========================================================= */
+async function loadTeamTicketAgents(ticketAgentMembers, period) {
+  const listEl = document.getElementById('team-ticket-agents-list');
+  const totalEl = document.getElementById('team-ticket-agents-total');
+  const labelEl = document.getElementById('team-ticket-agents-period-label');
+
+  if (labelEl && period) {
+    labelEl.textContent = `بازه‌ی جاری: ${period.startLabel} تا ${period.endLabel}`;
+  }
+
+  if (!ticketAgentMembers || ticketAgentMembers.length === 0) {
+    listEl.innerHTML = '<div class="empty-state">هنوز کارشناس تیکتی به شما اساین نشده است</div>';
+    totalEl.textContent = '۰';
+    return;
+  }
+
+  const memberIds = ticketAgentMembers.map(m => m.id);
+
+  const { data: reportRows, error: reportError } = await supabaseClient
+    .from(TABLE_TICKET_AGENT_REPORT)
+    .select('*')
+    .in('user_id', memberIds);
+
+  if (reportError) {
+    listEl.innerHTML = `<div class="empty-state">خطا در دریافت گزارش کارشناسان تیکت: ${reportError.message}</div>`;
+    totalEl.textContent = '—';
+    return;
+  }
+
+  // گروه‌بندی ردیف‌های گزارش بر اساس هر کارشناس تیکت
+  const rowsByUser = {};
+  for (const r of (reportRows || [])) {
+    if (!rowsByUser[r.user_id]) rowsByUser[r.user_id] = [];
+    rowsByUser[r.user_id].push(r);
+  }
+
+  let ticketTeamTotal = 0;
+  const membersWithTotals = ticketAgentMembers.map(m => {
+    const myRows = rowsByUser[m.id] || [];
+    const myTotal = myRows.reduce((sum, r) => sum + (Number(r.total_points) || 0), 0);
+    ticketTeamTotal += myTotal;
+    return { m, myRows, myTotal };
+  });
+
+  membersWithTotals.sort((a, b) => b.myTotal - a.myTotal);
+
+  listEl.innerHTML = membersWithTotals.map(({ m, myRows, myTotal }) => {
+    const displayName = m.full_name || m.backoffice_id || '—';
+
+    const rowsHtml = myRows.length
+      ? myRows.map(r => `
+          <div class="team-day-row">
+            <span class="team-day-date">${r.insure_types || 'تیکت'}</span>
+            <span class="team-day-badge">${formatNumber(r.total_points)}</span>
+          </div>
+        `).join('')
+      : '<div class="team-empty-days">هنوز گزارشی برای این بازه ثبت نشده است</div>';
+
+    return `
+      <div class="team-item" data-member="${m.id}">
+        <button class="team-header" type="button">
+          <div class="team-name-wrap">
+            <svg class="team-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            <span class="team-name">${displayName}</span>
+          </div>
+          <div class="team-right">
+            <span class="team-total">${formatNumber(myTotal)}</span>
+          </div>
+        </button>
+        <div class="team-details">
+          <div class="team-details-inner">${rowsHtml}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  totalEl.textContent = formatNumber(ticketTeamTotal);
+  bindExpandableToggles(listEl);
 }
 
 /* =========================================================
