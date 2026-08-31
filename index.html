@@ -764,7 +764,7 @@
 
   /* ---------- ویجت باغچه (بدون کادر/متن/دکمه — فقط گلدون قابل جابجایی) ---------- */
   .plant-widget {
-    position: absolute;
+    position: fixed;
     left: 22px;
     bottom: 26px;
     z-index: 40;
@@ -881,9 +881,8 @@
 .flower-scene .flower {
   position: absolute;
   /* پایه‌ی ساقه باید از روی خاکِ گلدون شروع بشه، نه از وسط بدنه‌ی آن؛
-     چون گلدون بلندتر شد (بالا، scaleY 1.35)، این عدد هم متناسب با آن بالا آمده
-     (مقدار بالاتر برده شد تا دسته‌ی گل داخل گلدون قرار بگیرد، نه بیرون از آن) */
-  bottom: 50cqmin;
+     این عدد کم شد تا فاصله‌ی گل با گلدون کمتر بشه و ساقه از داخل گلدون شروع بشه */
+  bottom: 28cqmin;
   transform-origin: bottom center;
   z-index: 10;
   --fl-speed: 0.8s;
@@ -3534,10 +3533,9 @@ function plantPositionStorageKey() {
 
 function applyPlantPosition(left, top) {
   const widget = document.getElementById('plant-widget');
-  const appScreen = document.getElementById('app-screen');
-  if (!widget || !appScreen) return;
-  const maxLeft = Math.max(0, appScreen.clientWidth - widget.offsetWidth);
-  const maxTop = Math.max(0, appScreen.offsetHeight - widget.offsetHeight);
+  if (!widget) return;
+  const maxLeft = Math.max(0, window.innerWidth - widget.offsetWidth);
+  const maxTop = Math.max(0, window.innerHeight - widget.offsetHeight);
   const clampedLeft = Math.min(Math.max(0, left), maxLeft);
   const clampedTop = Math.min(Math.max(0, top), maxTop);
   widget.style.left = `${clampedLeft}px`;
@@ -3583,11 +3581,10 @@ function initPlantDrag() {
     dragging = false;
     widget.setPointerCapture(e.pointerId);
     const rect = widget.getBoundingClientRect();
-    const appRect = document.getElementById('app-screen').getBoundingClientRect();
     startX = e.clientX;
     startY = e.clientY;
-    startLeft = rect.left - appRect.left;
-    startTop = rect.top - appRect.top;
+    startLeft = rect.left;
+    startTop = rect.top;
   });
 
   widget.addEventListener('pointermove', (e) => {
@@ -3619,9 +3616,8 @@ function initPlantDrag() {
       dragging = false;
       widget.classList.remove('dragging');
       const rect = widget.getBoundingClientRect();
-      const appRect = document.getElementById('app-screen').getBoundingClientRect();
       try {
-        localStorage.setItem(plantPositionStorageKey(), JSON.stringify({ left: rect.left - appRect.left, top: rect.top - appRect.top }));
+        localStorage.setItem(plantPositionStorageKey(), JSON.stringify({ left: rect.left, top: rect.top }));
       } catch (err) { /* بی‌اهمیت */ }
       if (e && e.pointerType === 'mouse' && cursor) {
         cursor.classList.add('visible');
