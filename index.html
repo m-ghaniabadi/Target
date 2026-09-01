@@ -377,6 +377,34 @@
     border-radius: 999px;
   }
 
+  /* ---------- نمای ادمین: وضعیت آنلاین/آفلاین کاربران ---------- */
+  .admin-row-name-wrap { display: flex; align-items: center; gap: 10px; }
+  .admin-status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--ink-faint);
+  }
+  .admin-status-dot.online {
+    background: var(--success);
+    box-shadow: 0 0 0 3px var(--success-soft);
+  }
+  .admin-row-info { display: flex; flex-direction: column; gap: 2px; }
+  .admin-row-name { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .admin-row-username { font-size: 12px; color: var(--ink-faint); }
+  .admin-status-badge {
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 999px;
+    white-space: nowrap;
+    color: var(--ink-faint);
+    background: var(--surface-tint);
+  }
+  .admin-status-badge.online { color: var(--success); background: var(--success-soft); }
+  .admin-last-seen { font-size: 11.5px; color: var(--ink-faint); margin-top: 2px; }
+
   /* ---------- گزارش کارشناسان تیکت (بازه‌ی ثابت ۲۳ تا ۲۲) ---------- */
   .ticket-primary-card {
     display: flex;
@@ -969,6 +997,20 @@
       <div class="ticket-hero-row" id="ticket-agent-hero"></div>
     </div>
 
+    <!-- نمای ادمین: وضعیت آنلاین/آفلاین همه‌ی کاربران -->
+    <div class="panel" id="panel-admin">
+      <div class="period-label" id="admin-period-label"></div>
+      <div class="summary-row">
+        <div class="summary-card">
+          <div class="label">تعداد آنلاین</div>
+          <div class="value" id="admin-online-count">—</div>
+        </div>
+      </div>
+      <div class="list-card" id="admin-list">
+        <div class="loading-state">در حال بارگذاری...</div>
+      </div>
+    </div>
+
     <!-- کادر خطاها (بین نمای کارشناسِ تارگت و کارشناسِ تیکت مشترک است؛
          عمداً اینجا و بعد از هر دو گروه تب قرار گرفته تا همیشه زیرِ تب‌های فعال بیفتد،
          نه بالای آن‌ها -->
@@ -1367,18 +1409,40 @@ async function enterApp(user) {
   currentUserId = user.id;
   loadLastUpdate();
 
-  // بررسی نقش کاربر: سوپروایزر، سرگروه یا نیروی عادی
+  // بررسی نقش کاربر: ادمین، سوپروایزر، سرگروه یا نیروی عادی
   const { data: profile, error: profileError } = await supabaseClient
     .from(TABLE_PROFILES)
     .select('role, full_name')
     .eq('id', user.id)
     .single();
 
+  const isAdmin = !profileError && profile && profile.role === 'admin';
   const isSupervisor = !profileError && profile && profile.role === 'supervisor';
   const isLeader = !profileError && profile && profile.role === 'leader';
   const isTicketAgent = !profileError && profile && profile.role === 'ticket_agent';
 
-  if (isTicketAgent) {
+  // اعلام «آنلاین بودن» این کاربر (برای همه‌ی نقش‌ها، از جمله خود ادمین)
+  startPresenceHeartbeat();
+
+  if (isAdmin) {
+    // نمای ادمین: فقط وضعیت آنلاین/آفلاین کاربران، هیچ پنل دیگری نمایش داده نمی‌شود
+    document.getElementById('main-tabs').style.display = 'none';
+    document.getElementById('panel-targets').classList.remove('active');
+    document.getElementById('panel-bugs').classList.remove('active');
+    document.getElementById('team-tabs').style.display = 'none';
+    document.getElementById('panel-team').classList.remove('active');
+    document.getElementById('panel-team-bugs').classList.remove('active');
+    document.getElementById('panel-team-performance').classList.remove('active');
+    document.getElementById('panel-team-ticket-agents').classList.remove('active');
+    document.getElementById('supervisor-tabs').style.display = 'none';
+    document.getElementById('panel-supervisor').classList.remove('active');
+    document.getElementById('panel-supervisor-bugs').classList.remove('active');
+    document.getElementById('ticket-agent-tabs').style.display = 'none';
+    document.getElementById('panel-ticket-agent').classList.remove('active');
+    document.getElementById('panel-admin').classList.add('active');
+    loadAdminView();
+    setInterval(loadAdminView, 20000); // هر ۲۰ ثانیه وضعیت‌ها را تازه می‌کند
+  } else if (isTicketAgent) {
     // نمای کارشناس تیکت: گزارش بازه‌ی ثابت (۲۳ تا ۲۲) + تب خطاها
     document.getElementById('main-tabs').style.display = 'none';
     document.getElementById('panel-targets').classList.remove('active');
@@ -1425,6 +1489,91 @@ async function enterApp(user) {
     loadTargets(user.id);
     loadBugs(user.id);
   }
+}
+
+/* =========================================================
+   وضعیت آنلاین بودن کاربران
+   - هر کاربری که وارد می‌شود، هر ۲۵ ثانیه یک «ضربان» (heartbeat) به
+     ستون last_seen_at پروفایل خودش می‌زند (از طریق یک تابع امن سمت دیتابیس)
+   - ادمین با خواندن last_seen_at همه‌ی پروفایل‌ها، آنلاین/آفلاین بودن را تشخیص می‌دهد
+   ========================================================= */
+const ONLINE_THRESHOLD_MS = 60 * 1000; // اگه آخرین ضربان کمتر از این فاصله بود، «آنلاین» حساب می‌شه
+
+async function sendPresenceHeartbeat() {
+  try {
+    await supabaseClient.rpc('touch_last_seen');
+  } catch (e) { /* اگر شبکه لحظه‌ای قطع بود، دفعه‌ی بعد دوباره تلاش می‌شود */ }
+}
+
+function startPresenceHeartbeat() {
+  sendPresenceHeartbeat();
+  setInterval(() => {
+    if (document.visibilityState === 'visible') sendPresenceHeartbeat();
+  }, 25000);
+}
+
+function relativeTimeFa(dateStr) {
+  if (!dateStr) return 'هیچ‌وقت وارد نشده';
+  const diffMs = Date.now() - new Date(dateStr).getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  if (diffSec < 60) return 'همین الان';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin} دقیقه پیش`;
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) return `${diffHour} ساعت پیش`;
+  const diffDay = Math.floor(diffHour / 24);
+  return `${diffDay} روز پیش`;
+}
+
+async function loadAdminView() {
+  const container = document.getElementById('admin-list');
+  const { data, error } = await supabaseClient
+    .from(TABLE_PROFILES)
+    .select('backoffice_id, full_name, last_seen_at')
+    .order('full_name', { ascending: true });
+
+  if (error) {
+    container.innerHTML = `<div class="empty-state">خطا در دریافت لیست کاربران: ${error.message}</div>`;
+    document.getElementById('admin-online-count').textContent = '—';
+    return;
+  }
+  if (!data || data.length === 0) {
+    container.innerHTML = '<div class="empty-state">هیچ کاربری یافت نشد</div>';
+    document.getElementById('admin-online-count').textContent = '۰';
+    return;
+  }
+
+  const now = Date.now();
+  const withStatus = data.map(u => {
+    const lastSeenMs = u.last_seen_at ? new Date(u.last_seen_at).getTime() : null;
+    const isOnline = lastSeenMs != null && (now - lastSeenMs) < ONLINE_THRESHOLD_MS;
+    return { ...u, isOnline };
+  });
+
+  withStatus.sort((a, b) => {
+    if (a.isOnline !== b.isOnline) return a.isOnline ? -1 : 1;
+    return (a.full_name || '').localeCompare(b.full_name || '', 'fa');
+  });
+
+  const onlineCount = withStatus.filter(u => u.isOnline).length;
+  document.getElementById('admin-online-count').textContent = formatNumber(onlineCount);
+  document.getElementById('admin-period-label').textContent = 'وضعیت هر ۲۰ ثانیه به‌صورت خودکار به‌روزرسانی می‌شود';
+
+  container.innerHTML = withStatus.map(u => `
+    <div class="row-item">
+      <div class="admin-row-name-wrap">
+        <span class="admin-status-dot ${u.isOnline ? 'online' : ''}"></span>
+        <div class="admin-row-info">
+          <span class="admin-row-name">${u.full_name || '—'}</span>
+          <span class="admin-row-username">${u.backoffice_id || '—'}</span>
+        </div>
+      </div>
+      <div style="text-align:left;">
+        <span class="admin-status-badge ${u.isOnline ? 'online' : ''}">${u.isOnline ? 'آنلاین' : 'آفلاین'}</span>
+        <div class="admin-last-seen">${relativeTimeFa(u.last_seen_at)}</div>
+      </div>
+    </div>
+  `).join('');
 }
 
 /* =========================================================
