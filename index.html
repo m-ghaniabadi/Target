@@ -39,6 +39,18 @@
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; }
+  html, body, * {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  input, textarea {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+  }
   body {
     margin: 0;
     font-family: var(--font);
@@ -1075,6 +1087,30 @@
 </div>
 
 <script>
+// --- محافظت ساده در برابر کپی (فقط بازدارنده، امنیت واقعی نیست) ---
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('copy', e => e.preventDefault());
+document.addEventListener('cut', e => e.preventDefault());
+document.addEventListener('dragstart', e => e.preventDefault());
+document.addEventListener('selectstart', e => {
+  const tag = (e.target && e.target.tagName) || '';
+  if (tag !== 'INPUT' && tag !== 'TEXTAREA') e.preventDefault();
+});
+document.addEventListener('keydown', e => {
+  const k = e.key ? e.key.toLowerCase() : '';
+  // F12
+  if (e.key === 'F12') { e.preventDefault(); return; }
+  // Ctrl/Cmd + Shift + I/J/C (devtools)
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['i', 'j', 'c'].includes(k)) { e.preventDefault(); return; }
+  // Ctrl/Cmd + U (view source), S (save), P (print)
+  if ((e.ctrlKey || e.metaKey) && ['u', 's', 'p'].includes(k)) { e.preventDefault(); return; }
+  // Ctrl/Cmd + C/X (copy/cut) outside inputs
+  if ((e.ctrlKey || e.metaKey) && ['c', 'x'].includes(k)) {
+    const tag = (e.target && e.target.tagName) || '';
+    if (tag !== 'INPUT' && tag !== 'TEXTAREA') e.preventDefault();
+  }
+});
+
 const SUPABASE_URL = "https://uqsjikbaiduwpbjugdjv.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_YMCX6Z78k884o14B8VTWPQ_y8hfCG8i";
 
