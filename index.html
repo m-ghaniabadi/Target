@@ -441,6 +441,7 @@
   .ticket-hero-card.bonus .hint { font-size: 11.5px; color: #fff; margin-top: 6px; position: relative; }
   .ticket-hero-card .label { font-size: 13.5px; color: rgba(255,255,255,.88); font-weight: 700; margin-bottom: 8px; position: relative; }
   .ticket-hero-card .value { font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -.01em; position: relative; }
+  .ticket-hero-card .value .unit { font-size: 13px; font-weight: 600; opacity: .85; margin-right: 4px; }
 
   .ticket-report-item { padding: 22px; }
   .ticket-report-title {
@@ -504,6 +505,7 @@
   .team-details-inner .ticket-hero-card { padding: 12px 14px; border-radius: var(--radius); min-width: 120px; }
   .team-details-inner .ticket-hero-card .label { font-size: 11.5px; margin-bottom: 4px; }
   .team-details-inner .ticket-hero-card .value { font-size: 17px; }
+  .team-details-inner .ticket-hero-card .value .unit { font-size: 10.5px; }
   .team-details-inner .ticket-hero-card .hint { font-size: 10px; margin-top: 4px; }
   .team-details-inner .ticket-report-item { padding: 12px 14px; }
   .team-details-inner .ticket-report-title { font-size: 12px; padding: 3px 11px; margin-bottom: 10px; }
@@ -1259,12 +1261,12 @@ function buildTicketAgentReportBlocks(data) {
 
   const heroHtml = `
     <div class="ticket-hero-card money">
-      <div class="label">مبلغ قابل پرداخت (ریال)</div>
-      <div class="value">${Math.round(paymentTotal).toLocaleString('en-US')}</div>
+      <div class="label">مبلغ قابل پرداخت</div>
+      <div class="value">${Math.round(paymentTotal).toLocaleString('en-US')}<span class="unit">ریال</span></div>
     </div>
     <div class="ticket-hero-card bonus">
-      <div class="label">مبلغ پرداختی + پاداش (ریال)</div>
-      <div class="value">${totalWithBonus.toLocaleString('en-US')}</div>
+      <div class="label">مبلغ پرداختی + پاداش</div>
+      <div class="value">${totalWithBonus.toLocaleString('en-US')}<span class="unit">ریال</span></div>
       <div class="hint">${bonusHint}</div>
     </div>
   `;
