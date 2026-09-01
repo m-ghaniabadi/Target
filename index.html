@@ -405,6 +405,46 @@
   .admin-status-badge.online { color: var(--success); background: var(--success-soft); }
   .admin-last-seen { font-size: 11.5px; color: var(--ink-faint); margin-top: 2px; }
 
+  /* ---------- نمای ادمین: ۴ کادر تفکیک‌شده بر اساس رشته/نقش (سرگروه، کارشناس عادی، کارشناس تیکت، سوپروایزر) ---------- */
+  .admin-groups-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .admin-group-card {
+    flex: 1 1 240px;
+    min-width: 240px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    display: flex;
+    flex-direction: column;
+  }
+  .admin-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-tint);
+  }
+  .admin-group-title { font-size: 14.5px; font-weight: 700; color: var(--ink); }
+  .admin-group-count {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--accent-strong);
+    background: var(--accent-soft);
+    padding: 3px 11px;
+    border-radius: 999px;
+  }
+  .admin-group-list { max-height: 420px; overflow-y: auto; }
+  .admin-group-list .row-item { padding: 12px 16px; }
+  .admin-group-list .admin-row-name { font-size: 13.5px; }
+  .admin-group-list .admin-row-username { font-size: 11.5px; }
+  .admin-group-empty { padding: 22px 16px; text-align: center; color: var(--ink-faint); font-size: 13px; }
+
   /* ---------- گزارش کارشناسان تیکت (بازه‌ی ثابت ۲۳ تا ۲۲) ---------- */
   .ticket-primary-card {
     display: flex;
@@ -998,7 +1038,8 @@
       <div class="ticket-hero-row" id="ticket-agent-hero"></div>
     </div>
 
-    <!-- نمای ادمین: وضعیت آنلاین/آفلاین همه‌ی کاربران -->
+    <!-- نمای ادمین: وضعیت آنلاین/آفلاین همه‌ی کاربران، به تفکیک ۴ کادر بر اساس نقش
+         (از راست به چپ: سرگروه، کارشناس عادی، کارشناس تیکت، سوپروایزر) -->
     <div class="panel" id="panel-admin">
       <div class="period-label" id="admin-period-label"></div>
       <div class="summary-row">
@@ -1007,8 +1048,43 @@
           <div class="value" id="admin-online-count">—</div>
         </div>
       </div>
-      <div class="list-card" id="admin-list">
-        <div class="loading-state">در حال بارگذاری...</div>
+      <div class="admin-groups-row">
+        <div class="admin-group-card">
+          <div class="admin-group-header">
+            <span class="admin-group-title">سرگروه‌ها</span>
+            <span class="admin-group-count" id="admin-count-leader">—</span>
+          </div>
+          <div class="admin-group-list" id="admin-list-leader">
+            <div class="loading-state">در حال بارگذاری...</div>
+          </div>
+        </div>
+        <div class="admin-group-card">
+          <div class="admin-group-header">
+            <span class="admin-group-title">کارشناس‌های عادی</span>
+            <span class="admin-group-count" id="admin-count-normal">—</span>
+          </div>
+          <div class="admin-group-list" id="admin-list-normal">
+            <div class="loading-state">در حال بارگذاری...</div>
+          </div>
+        </div>
+        <div class="admin-group-card">
+          <div class="admin-group-header">
+            <span class="admin-group-title">کارشناس‌های تیکت</span>
+            <span class="admin-group-count" id="admin-count-ticket_agent">—</span>
+          </div>
+          <div class="admin-group-list" id="admin-list-ticket_agent">
+            <div class="loading-state">در حال بارگذاری...</div>
+          </div>
+        </div>
+        <div class="admin-group-card">
+          <div class="admin-group-header">
+            <span class="admin-group-title">سوپروایزرها</span>
+            <span class="admin-group-count" id="admin-count-supervisor">—</span>
+          </div>
+          <div class="admin-group-list" id="admin-list-supervisor">
+            <div class="loading-state">در حال بارگذاری...</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1527,19 +1603,28 @@ function relativeTimeFa(dateStr) {
 }
 
 async function loadAdminView() {
-  const container = document.getElementById('admin-list');
   const { data, error } = await supabaseClient
     .from(TABLE_PROFILES)
-    .select('backoffice_id, full_name, last_seen_at')
+    .select('backoffice_id, full_name, last_seen_at, role')
     .order('full_name', { ascending: true });
 
+  const groupIds = ['leader', 'normal', 'ticket_agent', 'supervisor'];
+  const groupContainers = Object.fromEntries(groupIds.map(g => [g, document.getElementById('admin-list-' + g)]));
+  const groupCounts = Object.fromEntries(groupIds.map(g => [g, document.getElementById('admin-count-' + g)]));
+
   if (error) {
-    container.innerHTML = `<div class="empty-state">خطا در دریافت لیست کاربران: ${error.message}</div>`;
+    groupIds.forEach(g => {
+      groupContainers[g].innerHTML = `<div class="admin-group-empty">خطا در دریافت لیست کاربران</div>`;
+      groupCounts[g].textContent = '—';
+    });
     document.getElementById('admin-online-count').textContent = '—';
     return;
   }
   if (!data || data.length === 0) {
-    container.innerHTML = '<div class="empty-state">هیچ کاربری یافت نشد</div>';
+    groupIds.forEach(g => {
+      groupContainers[g].innerHTML = '<div class="admin-group-empty">کاربری یافت نشد</div>';
+      groupCounts[g].textContent = '۰';
+    });
     document.getElementById('admin-online-count').textContent = '۰';
     return;
   }
@@ -1560,7 +1645,18 @@ async function loadAdminView() {
   document.getElementById('admin-online-count').textContent = formatNumber(onlineCount);
   document.getElementById('admin-period-label').textContent = 'وضعیت هر ۲۰ ثانیه به‌صورت خودکار به‌روزرسانی می‌شود';
 
-  container.innerHTML = withStatus.map(u => `
+  // تفکیک کاربران به ۴ کادر بر اساس نقش؛ «کارشناس عادی» یعنی هر کسی که نقش خاصی
+  // (سرگروه/کارشناس تیکت/سوپروایزر/ادمین) نداشته باشد
+  const groups = { leader: [], normal: [], ticket_agent: [], supervisor: [] };
+  withStatus.forEach(u => {
+    if (u.role === 'leader') groups.leader.push(u);
+    else if (u.role === 'ticket_agent') groups.ticket_agent.push(u);
+    else if (u.role === 'supervisor') groups.supervisor.push(u);
+    else if (u.role === 'admin') return; // ادمین‌ها در هیچ‌کدام از این ۴ کادر نمایش داده نمی‌شوند
+    else groups.normal.push(u);
+  });
+
+  const renderRow = u => `
     <div class="row-item">
       <div class="admin-row-name-wrap">
         <span class="admin-status-dot ${u.isOnline ? 'online' : ''}"></span>
@@ -1574,7 +1670,15 @@ async function loadAdminView() {
         <div class="admin-last-seen">${relativeTimeFa(u.last_seen_at)}</div>
       </div>
     </div>
-  `).join('');
+  `;
+
+  groupIds.forEach(g => {
+    const list = groups[g];
+    groupCounts[g].textContent = formatNumber(list.length);
+    groupContainers[g].innerHTML = list.length
+      ? list.map(renderRow).join('')
+      : '<div class="admin-group-empty">کسی در این گروه نیست</div>';
+  });
 }
 
 /* =========================================================
