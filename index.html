@@ -1638,7 +1638,9 @@ async function loadAdminView() {
 
   withStatus.sort((a, b) => {
     if (a.isOnline !== b.isOnline) return a.isOnline ? -1 : 1;
-    return (a.full_name || '').localeCompare(b.full_name || '', 'fa');
+    const aTime = a.last_seen_at ? new Date(a.last_seen_at).getTime() : -Infinity;
+    const bTime = b.last_seen_at ? new Date(b.last_seen_at).getTime() : -Infinity;
+    return bTime - aTime;
   });
 
   const onlineCount = withStatus.filter(u => u.isOnline).length;
