@@ -1291,7 +1291,7 @@ function buildTicketAgentReportBlocks(data) {
             <span class="v">${formatNumber(r.ticket_count)}</span>
           </div>
         </div>
-        ${r.insure_types === 'بدنه' && r.body_inquiry_count != null ? `
+        ${(r.insure_types || '').includes('بدنه') && r.body_inquiry_count != null ? `
         <div class="ticket-report-cell count">
           <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg></div>
           <div class="kv">
