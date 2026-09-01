@@ -1304,11 +1304,11 @@ function buildTicketAgentReportBlocks(data) {
   const heroHtml = `
     <div class="ticket-hero-card money">
       <div class="label">مبلغ قابل پرداخت</div>
-      <div class="value">${Math.round(paymentTotal).toLocaleString('en-US')}<span class="unit">ریال</span></div>
+      <div class="value">${formatNumber(Math.round(paymentTotal))}<span class="unit">ریال</span></div>
     </div>
     <div class="ticket-hero-card bonus">
       <div class="label">مبلغ پرداختی + پاداش</div>
-      <div class="value">${totalWithBonus.toLocaleString('en-US')}<span class="unit">ریال</span></div>
+      <div class="value">${formatNumber(totalWithBonus)}<span class="unit">ریال</span></div>
       <div class="hint">${bonusHint}</div>
     </div>
   `;
