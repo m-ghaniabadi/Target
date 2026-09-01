@@ -772,6 +772,15 @@
   .perf-group-header.is-above .perf-group-count { color: var(--success); background: var(--success-soft); }
   .perf-group-empty { padding: 6px 20px 16px; font-size: 12.5px; color: var(--ink-faint); }
   .perf-group-divider { height: 1px; background: var(--line); margin: 4px 0; }
+  .perf-share-badge {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent-strong);
+    background: var(--accent-soft);
+    padding: 3px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
 
   /* ---------- نمای سوپروایزر: لیست کشویی سرگروه‌ها (و داخل هرکدام، لیست کشویی نفراتش) ---------- */
   .leader-item { border-bottom: 1px solid var(--line); }
@@ -1983,7 +1992,8 @@ function renderTeamPerformance(membersWithTotals, allTeamRows) {
     return;
   }
 
-  const teamAvg = membersWithTotals.reduce((sum, x) => sum + x.myTotal, 0) / membersWithTotals.length;
+  const teamTotal = membersWithTotals.reduce((sum, x) => sum + x.myTotal, 0);
+  const teamAvg = teamTotal / membersWithTotals.length;
   avgEl.textContent = formatNumber(teamAvg);
 
   // مجموعه‌ی همه‌ی روزهایی که کل تیم (هر عضوی) برای آن‌ها تارگت ثبت کرده، برای تشخیص «روز بدون صدور» هر نفر
@@ -2006,6 +2016,9 @@ function renderTeamPerformance(membersWithTotals, allTeamRows) {
   function buildPerfItem({ m, myRows, myTotal }, isBelow) {
     const displayName = m.full_name || m.backoffice_id || '—';
     const ownAvg = myRows.length ? myTotal / myRows.length : 0;
+    // میزان اثرگذاری این نفر روی تیم: سهمش از مجموع صدور کل تیم (چون میانگین تیم = مجموع تیم / تعداد نفرات،
+    // این سهم دقیقاً همون تأثیر این نفر روی بالا یا پایین بودن میانگین تیمه)
+    const sharePercent = teamTotal > 0 ? (myTotal / teamTotal) * 100 : 0;
 
     const goodDays = myRows
       .filter(r => (Number(r.target_count) || 0) > ownAvg)
@@ -2041,6 +2054,7 @@ function renderTeamPerformance(membersWithTotals, allTeamRows) {
           </div>
           <div class="team-right">
             <span class="${isBelow ? 'perf-below-badge' : 'perf-above-badge'}">${isBelow ? 'زیر' : 'بالای'} میانگین</span>
+            <span class="perf-share-badge">${formatNumber(sharePercent)}٪ از تیم</span>
             <span class="team-total">${formatNumber(myTotal)}</span>
           </div>
         </button>
