@@ -10,9 +10,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
-  /* =========================================================
-     پیکربندی — این سه مقدار را با اطلاعات پروژه Supabase خودتان جایگزین کنید
-     ========================================================= */
   :root {
     --bg: #EEF4FB;
     --surface: #FFFFFF;
@@ -50,7 +47,6 @@
     min-height: 100vh;
   }
 
-  /* ---------- زمینه‌ی تزئینی ---------- */
   .bg-glow {
     position: fixed;
     inset: 0;
@@ -72,7 +68,6 @@
     padding: 24px;
   }
 
-  /* ---------- صفحه ورود ---------- */
   .login-card {
     background: var(--surface);
     border: 1px solid var(--line);
@@ -163,7 +158,6 @@
     text-align: right;
   }
 
-  /* ---------- داشبورد ---------- */
   #app-screen { display: none; position: relative; z-index: 1; }
   .topbar-wrap {
     position: sticky;
@@ -377,7 +371,6 @@
     border-radius: 999px;
   }
 
-  /* ---------- نمای ادمین: وضعیت آنلاین/آفلاین کاربران ---------- */
   .admin-row-name-wrap { display: flex; align-items: center; gap: 10px; }
   .admin-status-dot {
     width: 9px;
@@ -405,7 +398,6 @@
   .admin-status-badge.online { color: var(--success); background: var(--success-soft); }
   .admin-last-seen { font-size: 11.5px; color: var(--ink-faint); margin-top: 2px; }
 
-  /* ---------- نمای ادمین: ۴ کادر تفکیک‌شده بر اساس رشته/نقش (سرگروه، کارشناس عادی، کارشناس تیکت، سوپروایزر) ---------- */
   .admin-groups-row {
     display: flex;
     gap: 14px;
@@ -445,7 +437,6 @@
   .admin-group-list .admin-row-username { font-size: 11.5px; }
   .admin-group-empty { padding: 22px 16px; text-align: center; color: var(--ink-faint); font-size: 13px; }
 
-  /* ---------- گزارش کارشناسان تیکت (بازه‌ی ثابت ۲۳ تا ۲۲) ---------- */
   .ticket-primary-card {
     display: flex;
     align-items: center;
@@ -561,8 +552,6 @@
   .ticket-report-cell.body .icon { background: rgba(31,169,113,.18); }
   .ticket-report-cell.body .k, .ticket-report-cell.body .v, .ticket-report-cell.body .icon svg { color: var(--success); stroke: var(--success); }
 
-  /* ---------- نسخه‌ی جمع‌وجورترِ کارت‌های گزارش کارشناس تیکت، مخصوص دیتیل بازشونده‌ی هر نفر
-       در تب «کارشناسان تیکت» نمای سرگروه ---------- */
   .team-details-inner .ticket-primary-card {
     padding: 14px 16px;
     margin-bottom: 10px;
@@ -599,7 +588,6 @@
     font-size: 14px;
   }
 
-  /* ---------- نمای سرگروه: لیست کشویی نیروها ---------- */
   .team-item { border-bottom: 1px solid var(--line); }
   .team-item:last-child { border-bottom: none; }
   .team-header {
@@ -708,7 +696,6 @@
   .team-details-inner .bug-item:hover { background: none; }
   .bug-agent { font-size: 13px; font-weight: 700; color: var(--accent-deep); margin-bottom: 4px; }
 
-  /* ---------- نمای سرگروه: بررسی عملکرد (نفرات زیر میانگین تیم) ---------- */
   .perf-below-badge {
     font-size: 12.5px;
     font-weight: 700;
@@ -782,7 +769,6 @@
     white-space: nowrap;
   }
 
-  /* ---------- نمای سوپروایزر: لیست کشویی سرگروه‌ها (و داخل هرکدام، لیست کشویی نفراتش) ---------- */
   .leader-item { border-bottom: 1px solid var(--line); }
   .leader-item:last-child { border-bottom: none; }
   .leader-header {
@@ -844,14 +830,12 @@
   .leader-item.open > .leader-details { max-height: 4000px; }
   .leader-details-inner { padding: 12px 14px 16px; }
 
-
 </style>
 </head>
 <body>
 
 <div class="bg-glow"></div>
 
-<!-- صفحه ورود -->
 <div class="center-screen" id="login-screen">
   <div class="login-card">
     <div class="login-logo">
@@ -874,7 +858,6 @@
   </div>
 </div>
 
-<!-- صفحه اصلی -->
 <div id="app-screen">
   <div class="topbar-wrap">
     <header class="topbar">
@@ -892,7 +875,6 @@
 
     <div class="header-accent-bar"></div>
   </div>
-
 
   <div class="last-update-bar" id="last-update-bar" style="display:none;"></div>
 
@@ -922,7 +904,6 @@
       </div>
     </div>
 
-    <!-- نمای سرگروه: تب‌های تیم -->
     <div class="tabs" id="team-tabs" style="display:none;">
       <button class="tab-btn active" data-team-tab="team">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
@@ -942,7 +923,6 @@
       </button>
     </div>
 
-    <!-- نمای سرگروه: لیست نیروها با مجموع تارگت هر کدام؛ کلیک روی هرکدام ریز روزهای همان بازه را باز می‌کند -->
     <div class="panel" id="panel-team">
       <div class="period-label" id="team-period-label"></div>
       <div class="summary-row">
@@ -956,7 +936,6 @@
       </div>
     </div>
 
-    <!-- نمای سرگروه: خطای تیم (لیست تخت همه‌ی خطاها به‌همراه یوزر بک‌آفیس کارشناس مربوطه) -->
     <div class="panel" id="panel-team-bugs">
       <div class="team-bugs-search-wrap">
         <input type="text" id="team-bugs-search" class="team-bugs-search" placeholder="جستجو بر اساس یوزر بک‌آفیس کارشناس...">
@@ -966,7 +945,6 @@
       </div>
     </div>
 
-    <!-- نمای سرگروه: بررسی عملکرد — میانگین تیم و نفراتی که زیر میانگین هستن، به‌همراه روزهای پرکارشون و روزهایی که صدور نداشتن -->
     <div class="panel" id="panel-team-performance">
       <div class="period-label" id="team-performance-period-label"></div>
       <div class="summary-row">
@@ -980,8 +958,6 @@
       </div>
     </div>
 
-    <!-- نمای سرگروه: کارشناسان تیکت — نیروهایی که role آن‌ها ticket_agent است؛
-         تارگتشون (مجموع امتیاز) از جدول ticket_agent_report خونده می‌شه، نه daily_targets -->
     <div class="panel" id="panel-team-ticket-agents">
       <div class="period-label" id="team-ticket-agents-period-label"></div>
       <div class="list-card" id="team-ticket-agents-list">
@@ -989,7 +965,6 @@
       </div>
     </div>
 
-    <!-- نمای سوپروایزر: تب‌های سرگروه‌ها -->
     <div class="tabs" id="supervisor-tabs" style="display:none;">
       <button class="tab-btn active" data-supervisor-tab="supervisor">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
@@ -1001,8 +976,6 @@
       </button>
     </div>
 
-    <!-- نمای سوپروایزر: لیست کشویی سرگروه‌ها؛ کلیک روی هرکدام لیست نفراتش را باز می‌کند؛
-         کلیک روی هر نفر هم ریز تارگت روزانه‌اش را باز می‌کند -->
     <div class="panel" id="panel-supervisor">
       <div class="period-label" id="supervisor-period-label"></div>
       <div class="summary-row">
@@ -1016,7 +989,6 @@
       </div>
     </div>
 
-    <!-- نمای سوپروایزر: خطای کل (لیست تخت همه‌ی خطاهای زیرمجموعه‌ی همه‌ی سرگروه‌ها) -->
     <div class="panel" id="panel-supervisor-bugs">
       <div class="team-bugs-search-wrap">
         <input type="text" id="supervisor-bugs-search" class="team-bugs-search" placeholder="جستجو بر اساس یوزر بک‌آفیس کارشناس یا نام سرگروه...">
@@ -1026,7 +998,6 @@
       </div>
     </div>
 
-    <!-- نمای کارشناس تیکت: بازه‌ی گزارش ثابته (۲۳ تا ۲۲)، خروجی اکسل نداره، همه‌ی ستون‌ها نمایش داده می‌شن -->
     <div class="tabs" id="ticket-agent-tabs" style="display:none;">
       <button class="tab-btn active" data-ticket-agent-tab="ticket-agent">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
@@ -1047,8 +1018,6 @@
       <div class="ticket-hero-row" id="ticket-agent-hero"></div>
     </div>
 
-    <!-- نمای ادمین: وضعیت آنلاین/آفلاین همه‌ی کاربران، به تفکیک ۴ کادر بر اساس نقش
-         (از راست به چپ: سرگروه، کارشناس عادی، کارشناس تیکت، سوپروایزر) -->
     <div class="panel" id="panel-admin">
       <div class="period-label" id="admin-period-label"></div>
       <div class="summary-row">
@@ -1097,9 +1066,6 @@
       </div>
     </div>
 
-    <!-- کادر خطاها (بین نمای کارشناسِ تارگت و کارشناسِ تیکت مشترک است؛
-         عمداً اینجا و بعد از هر دو گروه تب قرار گرفته تا همیشه زیرِ تب‌های فعال بیفتد،
-         نه بالای آن‌ها -->
     <div class="panel" id="panel-bugs">
       <div class="list-card" id="bugs-list">
         <div class="loading-state">در حال بارگذاری...</div>
@@ -1109,26 +1075,17 @@
 </div>
 
 <script>
-/* =========================================================
-   ۱) اطلاعات پروژه Supabase خودتان را اینجا وارد کنید
-   ========================================================= */
 const SUPABASE_URL = "https://uqsjikbaiduwpbjugdjv.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_YMCX6Z78k884o14B8VTWPQ_y8hfCG8i";
 
-/* دامنه‌ی داخلی برای تبدیل «نام کاربری» به ایمیل Supabase Auth
-   مثلا اگر کاربر m.ghaniabadi را وارد کند، به این ایمیل تبدیل می‌شود:
-   m.ghaniabadi@internal.yourcompany.com                        */
 const USERNAME_EMAIL_DOMAIN = "bimename.com";
 
-/* نام جدول‌ها — اگر در Supabase اسم دیگری گذاشتید همینجا تغییر دهید */
 const TABLE_TARGETS = "daily_targets";
 const TABLE_BUGS = "bug_reports";
 const TABLE_PROFILES = "profiles";
 const TABLE_TEAM_ASSIGNMENTS = "team_assignments";
 const TABLE_META = "app_meta";
 const TABLE_TICKET_AGENT_REPORT = "ticket_agent_report";
-/* ========================================================= */
-
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const loginScreen = document.getElementById('login-screen');
@@ -1136,7 +1093,6 @@ const appScreen = document.getElementById('app-screen');
 const loginForm = document.getElementById('login-form');
 const loginError = document.getElementById('login-error');
 const loginBtn = document.getElementById('login-btn');
-  // جلوگیری از تایپ یا پیست کردن فاصله در فیلدهای ورود
 function stripSpaces(el) {
   el.addEventListener('input', () => {
     const cleaned = el.value.replace(/\s+/g, '');
@@ -1197,7 +1153,6 @@ document.querySelectorAll('#main-tabs .tab-btn').forEach(btn => {
   });
 });
 
-// تب‌های نمای کارشناس تیکت (گزارش عملکرد / خطاها)
 document.querySelectorAll('#ticket-agent-tabs .tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('#ticket-agent-tabs .tab-btn').forEach(b => b.classList.remove('active'));
@@ -1213,7 +1168,6 @@ document.querySelectorAll('#ticket-agent-tabs .tab-btn').forEach(btn => {
   });
 });
 
-// تب‌های نمای سرگروه (تارگت تیم / خطای تیم)
 document.querySelectorAll('#team-tabs .tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('#team-tabs .tab-btn').forEach(b => b.classList.remove('active'));
@@ -1226,7 +1180,6 @@ document.querySelectorAll('#team-tabs .tab-btn').forEach(btn => {
   });
 });
 
-// تب‌های نمای سوپروایزر (تارگت سرگروه‌ها / خطای کل)
 document.querySelectorAll('#supervisor-tabs .tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('#supervisor-tabs .tab-btn').forEach(b => b.classList.remove('active'));
@@ -1238,12 +1191,9 @@ document.querySelectorAll('#supervisor-tabs .tab-btn').forEach(btn => {
 });
 
 function toJalaliDisplay(jalaliText) {
-  // تاریخ‌ها از قبل به‌صورت شمسی (مثلا 1405/05/24) در دیتابیس ذخیره شده‌اند، نیازی به تبدیل نیست
   return jalaliText || '—';
 }
 
-// عدد را با حداکثر یک رقم اعشار، تمیز و بدون خطاهای اعشاری float نمایش می‌دهد
-// مثال: 66.79999999999998 -> «۶۶.۸» (جداکننده‌ی اعشار به‌جای ٫ فارسی، همون نقطه‌ی معمولیه)
 function formatNumber(n) {
   const num = Number(n) || 0;
   const rounded = Math.round(num * 10) / 10;
@@ -1252,7 +1202,6 @@ function formatNumber(n) {
 
 function pad2(n) { return String(n).padStart(2, '0'); }
 
-// همان الگوریتم تبدیل میلادی به شمسی که در ورک‌فلوی n8n استفاده شده
 function gregorianToJalali(gy, gm, gd) {
   const g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
   let jy;
@@ -1284,8 +1233,6 @@ function tehranTodayJalali() {
   return gregorianToJalali(gy, gm, gd);
 }
 
-// بازه‌ی جاری: از بیست‌وسوم یک ماه شمسی تا بیست‌ودوم ماه بعد
-// (همان منطق محاسبه‌ی بازه‌ای که در ورک‌فلوی «ارسال تارگت تیکت + پاداش» استفاده شده)
 function currentPeriodBounds() {
   const [jy, jm, jd] = tehranTodayJalali();
   let startJy, startJm, endJy, endJm;
@@ -1327,24 +1274,11 @@ async function loadLastUpdate() {
   bar.style.display = 'flex';
 }
 
-/* =========================================================
-   نمای کارشناس تیکت
-   - بازه‌ی گزارش ثابته (همون بازه‌ی جاری ۲۳ تا ۲۲ که کل برنامه استفاده می‌کنه)
-   - این گزارش هر بار که ورک‌فلوی n8n اجرا می‌شه، برای کل بازه دوباره از متابیس
-     گرفته و روی همون ردیفِ user_id در جدول ticket_agent_report آپدیت می‌شه
-     (یعنی هر کارشناس فقط یک ردیف داره که همیشه مقدار تازه‌ی کل بازه رو نشون می‌ده)
-   - چون تعداد ردیف‌ها کمه، نیازی به خروجی اکسل نیست و همه‌ی ستون‌ها همینجا نمایش داده می‌شن
-   ========================================================= */
-// ساخت بلوک‌های HTML گزارش کارشناس تیکت (کارت تارگت، هیرو مبلغ+پاداش، جزئیات هر رشته)
-// از این تابع هم در نمای شخصیِ خود کارشناس تیکت و هم در دیتیل نمای سرگروه استفاده می‌شود
-// تا دقیقاً همان خروجی و محاسبات در هر دو جا یکسان باشد
 function buildTicketAgentReportBlocks(data) {
   const ticketTotal = data.reduce((sum, r) => sum + (Number(r.ticket_count) || 0), 0);
   const pointsTotal = data.reduce((sum, r) => sum + (Number(r.total_points) || 0), 0);
   const paymentTotal = data.reduce((sum, r) => sum + (Number(r.total_payment_rials) || 0), 0);
 
-  /* اگر کارشناس بیش از یک رشته (insure_types) داشته باشه (مثلاً هم «بدنه» هم «ثالث»)،
-     هم مجموع تارگت و هم پله‌ی پاداش باید جدا جدا برای هر رشته حساب و نمایش داده بشه */
   const groupsMap = new Map();
   data.forEach(r => {
     const key = r.insure_types || 'سایر';
@@ -1353,8 +1287,6 @@ function buildTicketAgentReportBlocks(data) {
     groupsMap.set(key, g);
   });
 
-  // «مجموع تارگت» مهم‌ترین عدد این گزارشه، برای همین جدا و بزرگ‌تر از بقیه نمایش داده می‌شه؛
-  // اگر بیش از یک رشته وجود داشته باشه، به همین شکل یک کارت دیگه برای رشته‌ی دوم زیرش اضافه می‌شه
   let primaryHtml;
   if (groupsMap.size <= 1) {
     primaryHtml = `
@@ -1495,7 +1427,6 @@ async function enterApp(user) {
   currentUserId = user.id;
   loadLastUpdate();
 
-  // بررسی نقش کاربر: ادمین، سوپروایزر، سرگروه یا نیروی عادی
   const { data: profile, error: profileError } = await supabaseClient
     .from(TABLE_PROFILES)
     .select('role, full_name')
@@ -1507,11 +1438,9 @@ async function enterApp(user) {
   const isLeader = !profileError && profile && profile.role === 'leader';
   const isTicketAgent = !profileError && profile && profile.role === 'ticket_agent';
 
-  // اعلام «آنلاین بودن» این کاربر (برای همه‌ی نقش‌ها، از جمله خود ادمین)
   startPresenceHeartbeat();
 
   if (isAdmin) {
-    // نمای ادمین: فقط وضعیت آنلاین/آفلاین کاربران، هیچ پنل دیگری نمایش داده نمی‌شود
     document.getElementById('main-tabs').style.display = 'none';
     document.getElementById('panel-targets').classList.remove('active');
     document.getElementById('panel-bugs').classList.remove('active');
@@ -1527,9 +1456,8 @@ async function enterApp(user) {
     document.getElementById('panel-ticket-agent').classList.remove('active');
     document.getElementById('panel-admin').classList.add('active');
     loadAdminView();
-    setInterval(loadAdminView, 20000); // هر ۲۰ ثانیه وضعیت‌ها را تازه می‌کند
+    setInterval(loadAdminView, 20000);
   } else if (isTicketAgent) {
-    // نمای کارشناس تیکت: گزارش بازه‌ی ثابت (۲۳ تا ۲۲) + تب خطاها
     document.getElementById('main-tabs').style.display = 'none';
     document.getElementById('panel-targets').classList.remove('active');
     document.getElementById('panel-bugs').classList.remove('active');
@@ -1546,7 +1474,6 @@ async function enterApp(user) {
     loadTicketAgentReport(user.id);
     loadBugs(user.id);
   } else if (isSupervisor) {
-    // نمای سوپروایزر (سرپرست): تب‌ها و پنل‌های نیروی عادی و سرگروه مخفی، تب‌های سرگروه‌ها نمایش داده می‌شود
     document.getElementById('main-tabs').style.display = 'none';
     document.getElementById('panel-targets').classList.remove('active');
     document.getElementById('panel-bugs').classList.remove('active');
@@ -1560,7 +1487,6 @@ async function enterApp(user) {
     document.getElementById('panel-supervisor-bugs').classList.remove('active');
     loadSupervisorView(user.id);
   } else if (isLeader) {
-    // نمای سرگروه: تب‌ها و پنل‌های نیروی عادی مخفی، تب‌های تیم نمایش داده می‌شود
     document.getElementById('main-tabs').style.display = 'none';
     document.getElementById('panel-targets').classList.remove('active');
     document.getElementById('panel-bugs').classList.remove('active');
@@ -1571,24 +1497,17 @@ async function enterApp(user) {
     document.getElementById('panel-team-ticket-agents').classList.remove('active');
     loadTeamView(user.id);
   } else {
-    // نمای نیروی عادی
     loadTargets(user.id);
     loadBugs(user.id);
   }
 }
 
-/* =========================================================
-   وضعیت آنلاین بودن کاربران
-   - هر کاربری که وارد می‌شود، هر ۲۵ ثانیه یک «ضربان» (heartbeat) به
-     ستون last_seen_at پروفایل خودش می‌زند (از طریق یک تابع امن سمت دیتابیس)
-   - ادمین با خواندن last_seen_at همه‌ی پروفایل‌ها، آنلاین/آفلاین بودن را تشخیص می‌دهد
-   ========================================================= */
-const ONLINE_THRESHOLD_MS = 60 * 1000; // اگه آخرین ضربان کمتر از این فاصله بود، «آنلاین» حساب می‌شه
+const ONLINE_THRESHOLD_MS = 60 * 1000;
 
 async function sendPresenceHeartbeat() {
   try {
     await supabaseClient.rpc('touch_last_seen');
-  } catch (e) { /* اگر شبکه لحظه‌ای قطع بود، دفعه‌ی بعد دوباره تلاش می‌شود */ }
+  } catch (e) { }
 }
 
 function startPresenceHeartbeat() {
@@ -1656,14 +1575,12 @@ async function loadAdminView() {
   document.getElementById('admin-online-count').textContent = formatNumber(onlineCount);
   document.getElementById('admin-period-label').textContent = 'وضعیت هر ۲۰ ثانیه به‌صورت خودکار به‌روزرسانی می‌شود';
 
-  // تفکیک کاربران به ۴ کادر بر اساس نقش؛ «کارشناس عادی» یعنی هر کسی که نقش خاصی
-  // (سرگروه/کارشناس تیکت/سوپروایزر/ادمین) نداشته باشد
   const groups = { leader: [], normal: [], ticket_agent: [], supervisor: [] };
   withStatus.forEach(u => {
     if (u.role === 'leader') groups.leader.push(u);
     else if (u.role === 'ticket_agent') groups.ticket_agent.push(u);
     else if (u.role === 'supervisor') groups.supervisor.push(u);
-    else if (u.role === 'admin') return; // ادمین‌ها در هیچ‌کدام از این ۴ کادر نمایش داده نمی‌شوند
+    else if (u.role === 'admin') return;
     else groups.normal.push(u);
   });
 
@@ -1692,15 +1609,6 @@ async function loadAdminView() {
   });
 }
 
-/* =========================================================
-   نمای سرگروه
-   - نیروهای زیرمجموعه از جدول واسط team_assignments خوانده می‌شوند
-     (هر نیرو می‌تواند زیرمجموعه‌ی چند سرگروه باشد)
-   - تارگت هر نیرو در بازه‌ی جاری جمع زده می‌شود
-   - کلیک روی هر نیرو، ریز تارگت روز به روزش را باز/بسته می‌کند
-   ========================================================= */
-// ساخت HTML لیست کشویی نفرات (هر نفر با کلیک، ریز تارگت روز به روزش باز/بسته می‌شود)
-// هم در نمای سرگروه (لیست مستقیم نفرات) و هم در نمای سوپروایزر (داخل هر سرگروه) استفاده می‌شود
 function buildMemberItemsHtml(membersWithTotals) {
   return membersWithTotals.map(({ m, myRows, myBugs, myTotal }) => {
     const displayName = m.full_name || m.backoffice_id || '—';
@@ -1734,7 +1642,6 @@ function buildMemberItemsHtml(membersWithTotals) {
   }).join('');
 }
 
-// فعال کردن باز/بسته شدن ردیف‌های نفرات (.team-item) و در صورت وجود، سرگروه‌ها (.leader-item) داخل یک ظرف
 function bindExpandableToggles(container) {
   container.querySelectorAll('.leader-item').forEach(litem => {
     const header = litem.querySelector(':scope > .leader-header');
@@ -1759,7 +1666,6 @@ async function loadTeamView(leaderId) {
   const period = currentPeriodBounds();
   document.getElementById('team-period-label').textContent = `بازه‌ی جاری: ${period.startLabel} تا ${period.endLabel}`;
 
-  // ۱) گرفتن id نیروهای زیرمجموعه‌ی این سرگروه از جدول واسط
   const { data: assignments, error: assignError } = await supabaseClient
     .from(TABLE_TEAM_ASSIGNMENTS)
     .select('member_id')
@@ -1778,7 +1684,6 @@ async function loadTeamView(leaderId) {
 
   const memberIdList = assignments.map(a => a.member_id);
 
-  // ۲) گرفتن اطلاعات پروفایل همان نیروها
   const { data: allMembers, error: membersError } = await supabaseClient
     .from(TABLE_PROFILES)
     .select('id, backoffice_id, full_name, role')
@@ -1795,8 +1700,6 @@ async function loadTeamView(leaderId) {
     return;
   }
 
-  // کارشناسان تیکت (role = ticket_agent) جدا می‌شوند چون تارگتشون از جدول
-  // ticket_agent_report خونده می‌شه، نه daily_targets؛ در تب مجزای «کارشناسان تیکت» نمایش داده می‌شن
   const ticketAgentMembers = allMembers.filter(m => m.role === 'ticket_agent');
   const members = allMembers.filter(m => m.role !== 'ticket_agent');
 
@@ -1813,7 +1716,6 @@ async function loadTeamView(leaderId) {
 
   const memberIds = members.map(m => m.id);
 
-  // ۲) گرفتن تارگت همه‌ی این نیروها در بازه‌ی جاری، در یک درخواست
   const { data: rows, error: rowsError } = await supabaseClient
     .from(TABLE_TARGETS)
     .select('*')
@@ -1828,7 +1730,6 @@ async function loadTeamView(leaderId) {
     return;
   }
 
-  // ۳) گرفتن خطاهای ثبت‌شده‌ی همه‌ی این نیروها (کل خطاها، مثل نمای شخصی هر کارشناس)
   const { data: bugRows, error: bugRowsError } = await supabaseClient
     .from(TABLE_BUGS)
     .select('*')
@@ -1839,14 +1740,12 @@ async function loadTeamView(leaderId) {
     console.error('خطا در دریافت خطاهای نیروها:', bugRowsError.message);
   }
 
-  // گروه‌بندی ردیف‌های تارگت بر اساس هر نیرو
   const rowsByUser = {};
   for (const r of (rows || [])) {
     if (!rowsByUser[r.user_id]) rowsByUser[r.user_id] = [];
     rowsByUser[r.user_id].push(r);
   }
 
-  // گروه‌بندی خطاها بر اساس هر نیرو
   const bugsByUser = {};
   for (const b of (bugRows || [])) {
     if (!bugsByUser[b.user_id]) bugsByUser[b.user_id] = [];
@@ -1862,7 +1761,6 @@ async function loadTeamView(leaderId) {
     return { m, myRows, myBugs, myTotal };
   });
 
-  // مرتب‌سازی نیروها بر اساس مجموع تارگت، از زیاد به کم
   membersWithTotals.sort((a, b) => b.myTotal - a.myTotal);
 
   const memberBlocks = buildMemberItemsHtml(membersWithTotals);
@@ -1870,7 +1768,6 @@ async function loadTeamView(leaderId) {
   container.innerHTML = memberBlocks;
   document.getElementById('team-period-total').textContent = formatNumber(teamTotal);
 
-  // ---------- تب «خطای تیم»: لیست تخت همه‌ی خطاها به‌همراه backoffice_id کارشناس ----------
   teamBugsFlat = [];
   for (const m of members) {
     const displayName = m.full_name || m.backoffice_id || '—';
@@ -1882,22 +1779,12 @@ async function loadTeamView(leaderId) {
 
   renderTeamBugsList(teamBugsFlat);
 
-  // فعال کردن باز/بسته شدن هر ردیف با کلیک
   bindExpandableToggles(container);
 
-  // ---------- تب «بررسی عملکرد»: میانگین تیم + نفرات زیر میانگین ----------
   document.getElementById('team-performance-period-label').textContent = `بازه‌ی جاری: ${period.startLabel} تا ${period.endLabel}`;
   renderTeamPerformance(membersWithTotals, rows || []);
 }
 
-/* =========================================================
-   نمای سرگروه — تب «کارشناسان تیکت»
-   - نیروهایی که role آن‌ها در profiles برابر ticket_agent است
-   - تارگت هرکدام (مجموع امتیاز) از جدول ticket_agent_report خونده می‌شه
-     (دقیقاً مثل نمای شخصیِ خودِ کارشناس تیکت، بدون فیلتر بازه، چون این جدول
-     همیشه فقط داده‌ی بازه‌ی جاری رو نگه می‌داره)
-   - کلیک روی هر نفر، ریز رشته‌ها/امتیازش رو باز/بسته می‌کنه
-   ========================================================= */
 async function loadTeamTicketAgents(ticketAgentMembers, period) {
   const listEl = document.getElementById('team-ticket-agents-list');
   const labelEl = document.getElementById('team-ticket-agents-period-label');
@@ -1923,7 +1810,6 @@ async function loadTeamTicketAgents(ticketAgentMembers, period) {
     return;
   }
 
-  // گروه‌بندی ردیف‌های گزارش بر اساس هر کارشناس تیکت
   const rowsByUser = {};
   for (const r of (reportRows || [])) {
     if (!rowsByUser[r.user_id]) rowsByUser[r.user_id] = [];
@@ -1942,8 +1828,6 @@ async function loadTeamTicketAgents(ticketAgentMembers, period) {
   listEl.innerHTML = membersWithTotals.map(({ m, myRows, myTotal, blocks }) => {
     const displayName = m.full_name || m.backoffice_id || '—';
 
-    // دیتیل هر کارشناس تیکت دقیقاً همون بلوک‌هایی‌یه که تو نمای شخصیِ خودش نشون داده می‌شه:
-    // کارت مجموع تارگت، مبلغ قابل پرداخت و پاداش، و ریز هر رشته (تعداد تیکت، روزهای عادی/تعطیل و ...)
     const detailHtml = blocks
       ? `
           ${blocks.primaryHtml}
@@ -1973,15 +1857,6 @@ async function loadTeamTicketAgents(ticketAgentMembers, period) {
   bindExpandableToggles(listEl);
 }
 
-/* =========================================================
-   نمای سرگروه — بررسی عملکرد
-   - میانگین تیم = مجموع تارگت تیم / تعداد نفرات
-   - نفراتی که مجموع تارگتشون کمتر از میانگین تیمه، نمایش داده می‌شن
-   - «روزهای پرکار» برای هر نفر: روزهایی که تارگت آن روزش از میانگین
-     روزانه‌ی خودش بیشتر بوده (یعنی روزهایی که بهتر از حد معمول خودش کار کرده)
-   - «روزهای بدون صدور» برای هر نفر: روزهایی که بقیه‌ی اعضای تیم برای آن
-     روز تارگت ثبت کرده‌اند ولی این نفر، برای همون روز هیچ ثبتی نداشته
-   ========================================================= */
 function renderTeamPerformance(membersWithTotals, allTeamRows) {
   const listEl = document.getElementById('team-performance-list');
   const avgEl = document.getElementById('team-performance-average');
@@ -1996,7 +1871,6 @@ function renderTeamPerformance(membersWithTotals, allTeamRows) {
   const teamAvg = teamTotal / membersWithTotals.length;
   avgEl.textContent = formatNumber(teamAvg);
 
-  // مجموعه‌ی همه‌ی روزهایی که کل تیم (هر عضوی) برای آن‌ها تارگت ثبت کرده، برای تشخیص «روز بدون صدور» هر نفر
   const allTeamDatesMap = new Map();
   for (const r of allTeamRows) {
     if (r.report_date_jalali && !allTeamDatesMap.has(r.report_date_jalali)) {
@@ -2012,12 +1886,9 @@ function renderTeamPerformance(membersWithTotals, allTeamRows) {
     .filter(x => x.myTotal >= teamAvg)
     .sort((a, b) => b.myTotal - a.myTotal);
 
-  // ساخت آیتم کشویی برای هر نفر: روزهای پرکار (بالاتر از میانگین خودش) و روزهای بدون صدور (نسبت به بقیه‌ی تیم)
   function buildPerfItem({ m, myRows, myTotal }, isBelow) {
     const displayName = m.full_name || m.backoffice_id || '—';
     const ownAvg = myRows.length ? myTotal / myRows.length : 0;
-    // میزان اثرگذاری این نفر روی تیم: سهمش از مجموع صدور کل تیم (چون میانگین تیم = مجموع تیم / تعداد نفرات،
-    // این سهم دقیقاً همون تأثیر این نفر روی بالا یا پایین بودن میانگین تیمه)
     const sharePercent = teamTotal > 0 ? (myTotal / teamTotal) * 100 : 0;
 
     const goodDays = myRows
@@ -2095,20 +1966,11 @@ function renderTeamPerformance(membersWithTotals, allTeamRows) {
   bindExpandableToggles(listEl);
 }
 
-/* =========================================================
-   نمای سوپروایزر
-   - سرگروه‌های زیرمجموعه مستقیماً از ستون profiles.supervisor خوانده می‌شوند
-     (روی پروفایل هر سرگروه، آیدی سوپروایزرش در همین ستون ذخیره شده)
-   - نفرات هر سرگروه از همان جدول واسط تیم (team_assignments) خوانده می‌شود
-   - کلیک روی هر سرگروه، لیست نفراتش را باز/بسته می‌کند
-   - کلیک روی هر نفر، ریز تارگت روز به روزش را باز/بسته می‌کند
-   ========================================================= */
 async function loadSupervisorView(supervisorId) {
   const container = document.getElementById('supervisor-list');
   const period = currentPeriodBounds();
   document.getElementById('supervisor-period-label').textContent = `بازه‌ی جاری: ${period.startLabel} تا ${period.endLabel}`;
 
-  // ۱) گرفتن پروفایل سرگروه‌های زیرمجموعه‌ی این سوپروایزر
   const { data: leaders, error: leadersError } = await supabaseClient
     .from(TABLE_PROFILES)
     .select('id, full_name, backoffice_id')
@@ -2130,7 +1992,6 @@ async function loadSupervisorView(supervisorId) {
 
   const leaderIdList = leaders.map(l => l.id);
 
-  // ۳) گرفتن نفرات هرکدام از این سرگروه‌ها از جدول واسط تیم
   const { data: teamAssignments, error: teamAssignError } = await supabaseClient
     .from(TABLE_TEAM_ASSIGNMENTS)
     .select('leader_id, member_id')
@@ -2144,7 +2005,6 @@ async function loadSupervisorView(supervisorId) {
 
   const memberIds = [...new Set((teamAssignments || []).map(a => a.member_id))];
 
-  // اگر هیچ نفری به هیچ‌کدام از این سرگروه‌ها اساین نشده باشد، فقط سرگروه‌ها را خالی نشان بده
   if (memberIds.length === 0) {
     container.innerHTML = leaders.map(l => `
       <div class="leader-item" data-leader="${l.id}">
@@ -2169,7 +2029,6 @@ async function loadSupervisorView(supervisorId) {
     return;
   }
 
-  // ۴) گرفتن پروفایل همه‌ی نفرات زیرمجموعه‌ی همه‌ی این سرگروه‌ها
   const { data: members, error: membersError } = await supabaseClient
     .from(TABLE_PROFILES)
     .select('id, backoffice_id, full_name')
@@ -2184,7 +2043,6 @@ async function loadSupervisorView(supervisorId) {
   const memberById = {};
   (members || []).forEach(m => { memberById[m.id] = m; });
 
-  // ۵) گرفتن تارگت همه‌ی نفرات در بازه‌ی جاری، در یک درخواست
   const { data: rows, error: rowsError } = await supabaseClient
     .from(TABLE_TARGETS)
     .select('*')
@@ -2199,7 +2057,6 @@ async function loadSupervisorView(supervisorId) {
     return;
   }
 
-  // ۶) گرفتن خطاهای ثبت‌شده‌ی همه‌ی این نفرات (کل خطاها)
   const { data: bugRows, error: bugRowsError } = await supabaseClient
     .from(TABLE_BUGS)
     .select('*')
@@ -2222,10 +2079,9 @@ async function loadSupervisorView(supervisorId) {
     bugsByUser[b.user_id].push(b);
   }
 
-  // گروه‌بندی id نفرات بر اساس هر سرگروه (بدون تکراری)
   const memberIdsByLeader = {};
   for (const a of (teamAssignments || [])) {
-    if (!memberById[a.member_id]) continue; // نفری که پروفایلش پیدا نشد نادیده گرفته شود
+    if (!memberById[a.member_id]) continue;
     if (!memberIdsByLeader[a.leader_id]) memberIdsByLeader[a.leader_id] = [];
     if (!memberIdsByLeader[a.leader_id].includes(a.member_id)) {
       memberIdsByLeader[a.leader_id].push(a.member_id);
@@ -2246,13 +2102,11 @@ async function loadSupervisorView(supervisorId) {
       leaderBugCount += myBugs.length;
       return { m, myRows, myBugs, myTotal };
     });
-    // مرتب‌سازی نفرات هر سرگروه بر اساس مجموع تارگت، از زیاد به کم
     membersWithTotals.sort((a, b) => b.myTotal - a.myTotal);
     grandTotal += leaderTotal;
     return { l, membersWithTotals, leaderTotal, leaderBugCount };
   });
 
-  // مرتب‌سازی سرگروه‌ها بر اساس مجموع تارگت تیمشان، از زیاد به کم
   leadersWithTotals.sort((a, b) => b.leaderTotal - a.leaderTotal);
 
   container.innerHTML = leadersWithTotals.map(({ l, membersWithTotals, leaderTotal, leaderBugCount }) => {
@@ -2283,7 +2137,6 @@ async function loadSupervisorView(supervisorId) {
 
   document.getElementById('supervisor-period-total').textContent = formatNumber(grandTotal);
 
-  // ---------- تب «خطای کل»: لیست تخت همه‌ی خطاها به‌همراه نام نفر و نام سرگروه ----------
   supervisorBugsFlat = [];
   for (const { l, membersWithTotals } of leadersWithTotals) {
     const leaderName = l.full_name || l.backoffice_id || '—';
@@ -2297,11 +2150,9 @@ async function loadSupervisorView(supervisorId) {
   supervisorBugsFlat.sort((a, b) => (Number(b.check_date_sort) || 0) - (Number(a.check_date_sort) || 0));
   renderSupervisorBugsList(supervisorBugsFlat);
 
-  // فعال کردن باز/بسته شدن سرگروه‌ها و نفرات هرکدام با کلیک
   bindExpandableToggles(container);
 }
 
-// رندر لیست خطای کل سوپروایزر (با پشتیبانی از فیلتر جستجوی بک‌آفیس/نام سرگروه)
 function renderSupervisorBugsList(list) {
   const supervisorBugsContainer = document.getElementById('supervisor-bugs-list');
   if (!supervisorBugsContainer) return;
@@ -2323,7 +2174,6 @@ function renderSupervisorBugsList(list) {
   `).join('');
 }
 
-// جستجوی زنده بر اساس یوزر بک‌آفیس کارشناس یا نام سرگروه در تب «خطای کل»
 const supervisorBugsSearchEl = document.getElementById('supervisor-bugs-search');
 if (supervisorBugsSearchEl) {
   supervisorBugsSearchEl.addEventListener('input', (e) => {
@@ -2340,7 +2190,6 @@ if (supervisorBugsSearchEl) {
   });
 }
 
-// رندر لیست خطای تیم (با پشتیبانی از فیلتر جستجوی بک‌آفیس)
 function renderTeamBugsList(list) {
   const teamBugsContainer = document.getElementById('team-bugs-list');
   if (!list || list.length === 0) {
@@ -2361,7 +2210,6 @@ function renderTeamBugsList(list) {
   `).join('');
 }
 
-// جستجوی زنده بر اساس یوزر بک‌آفیس کارشناس در تب «خطای تیم»
 document.getElementById('team-bugs-search').addEventListener('input', (e) => {
   const q = e.target.value.trim().toLowerCase();
   if (!q) {
@@ -2412,9 +2260,6 @@ async function loadTargets(userId) {
 let currentUserId = null;
 let currentPeriodKey = null;
 
-/* پله‌های پاداش کارشناس تیکت (بر اساس تعداد کل تیکت در بازه)
-   مبالغ به ریال هستند (تبدیل‌شده از تومان با ضرب در ۱۰ تا با مبلغ قابل پرداخت هم‌واحد باشند).
-   اگر تعداد تیکت به هیچ پله‌ای نرسیده باشد، پاداش صفر است. */
 const TICKET_BONUS_TIERS = [
   { tickets: 300,  amount: 10000000 },
   { tickets: 450,  amount: 25000000 },
@@ -2423,8 +2268,6 @@ const TICKET_BONUS_TIERS = [
   { tickets: 1100, amount: 60000000 },
 ];
 
-/* پله‌های پاداش کارشناس تیکت که insure_types آن‌ها «بدنه» است (نرخ‌ها/پاداش‌ها متفاوت از سایر انواع بیمه‌ست)
-   مبالغ تصویر به تومان بودند و اینجا ×۱۰ شده‌اند تا با ریال هم‌واحد باشند */
 const TICKET_BONUS_TIERS_BODY = [
   { tickets: 300,  amount: 10000000 },
   { tickets: 450,  amount: 25000000 },
@@ -2433,11 +2276,9 @@ const TICKET_BONUS_TIERS_BODY = [
   { tickets: 1100, amount: 60000000 },
 ];
 
-// بر اساس insure_types هر ردیف، جدول پله‌ی پاداش مناسب را برمی‌گرداند
 function tierTableForInsureType(insureType) {
   return insureType === 'بدنه' ? TICKET_BONUS_TIERS_BODY : TICKET_BONUS_TIERS;
 }
-
 
 function ticketBonusForTotal(ticketTotal, tiers = TICKET_BONUS_TIERS) {
   let reached = null;
@@ -2447,7 +2288,6 @@ function ticketBonusForTotal(ticketTotal, tiers = TICKET_BONUS_TIERS) {
   return reached;
 }
 
-// اولین پله‌ای که هنوز کارشناس بهش نرسیده (برای نمایش راهنمای «تا پله بعدی چقدر مانده»)
 function nextTicketBonusTier(ticketTotal, tiers = TICKET_BONUS_TIERS) {
   for (const tier of tiers) {
     if (ticketTotal < tier.tickets) return tier;
@@ -2473,7 +2313,7 @@ function bugsSeenStorageKey() {
 }
 
 function markBugsSeen(keys) {
-  try { localStorage.setItem(bugsSeenStorageKey(), JSON.stringify(keys || [])); } catch (e) { /* بی‌خیال، فقط نشونگر کار نمی‌کنه */ }
+  try { localStorage.setItem(bugsSeenStorageKey(), JSON.stringify(keys || [])); } catch (e) { }
   document.querySelectorAll('.bugs-dot').forEach(dot => { dot.style.display = 'none'; });
 }
 
@@ -2485,13 +2325,11 @@ function updateBugsNotification(currentKeys) {
     stored = raw ? JSON.parse(raw) : null;
   } catch (e) { stored = null; }
 
-  // اگر کاربر همین الان روی تب خطاهاست، همه چیز دیده‌شده حساب می‌شود
   if (isBugsTabActive()) {
     markBugsSeen(currentKeys);
     return;
   }
 
-  // اولین باری که این ویجت اجرا می‌شود، فقط وضعیت فعلی را به‌عنوان مبنا ذخیره کن (بدون نمایش نقطه)
   if (stored === null) {
     markBugsSeen(currentKeys);
     return;
@@ -2510,7 +2348,6 @@ async function loadBugs(userId) {
     .order('check_date_sort', { ascending: false });
 
   if (error) {
-    // در صورت خطای موقت شبکه، وضعیت فعلی لیست/نقطه را دست‌نخورده نگه می‌داریم
     if (!lastRenderedBugsKeysStr) {
       container.innerHTML = `<div class="empty-state">خطا در دریافت اطلاعات: ${error.message}</div>`;
     }
@@ -2526,7 +2363,6 @@ async function loadBugs(userId) {
   const keys = data.map(bugKey);
   const keysStr = JSON.stringify(keys);
 
-  // فقط وقتی چیزی واقعاً تغییر کرده دوباره رندر کن (برای جلوگیری از پرش لیست هنگام poll دوره‌ای)
   if (keysStr !== lastRenderedBugsKeysStr) {
     container.innerHTML = data.map(r => `
       <div class="bug-item">
@@ -2545,16 +2381,11 @@ async function loadBugs(userId) {
   updateBugsNotification(keys);
 }
 
-// اگر کاربر قبلاً لاگین کرده و نشست (session) هنوز معتبر است، مستقیم وارد داشبورد شود
 (async () => {
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (session) enterApp(session.user);
 })();
 
-/* بررسی دوره‌ای خطاهای جدید (فقط سمت کلاینت، بدون هیچ تغییری در بک‌اند)
-   هر ۴۵ ثانیه یک‌بار همون جدول bug_reports دوباره خونده می‌شه و اگر
-   خطای جدیدی نسبت به آخرین باری که کاربر تب «خطاها» رو باز کرده وجود داشته باشه،
-   نقطه‌ی قرمز چشمک‌زن کنار تب نمایش داده می‌شه */
 setInterval(() => {
   if (currentUserId && document.visibilityState === 'visible') {
     loadBugs(currentUserId);
