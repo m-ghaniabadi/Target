@@ -439,6 +439,16 @@
   .ticket-primary-icon svg { width: 28px; height: 28px; stroke: #fff; }
   .ticket-primary-card .label { font-size: 16px; color: rgba(255,255,255,.9); font-weight: 700; position: relative; }
   .ticket-primary-card .value { font-size: 30px; font-weight: 800; color: #fff; letter-spacing: -.01em; position: relative; }
+  .ticket-primary-card .value .unit { font-size: 13px; font-weight: 600; opacity: .85; margin-right: 4px; }
+
+  /* کارت میانگین زمان پاسخگویی به تیکت - زیر مجموع تارگت، با رنگ متفاوت و کمی جمع‌وجورتر */
+  .ticket-primary-card.secondary {
+    background: linear-gradient(135deg, var(--violet) 0%, #B7A6F2 100%);
+    box-shadow: 0 16px 34px -16px rgba(124,92,224,.4);
+    padding: 18px 22px;
+  }
+  .ticket-primary-card.secondary .label { font-size: 14px; }
+  .ticket-primary-card.secondary .value { font-size: 22px; }
 
   .ticket-hero-row {
     display: flex;
@@ -1284,6 +1294,19 @@ function buildTicketAgentReportBlocks(data) {
         <div class="value">${formatNumber(g.points)}</div>
       </div>
     `).join('');
+  }
+
+  // میانگین زمان پاسخگویی به تیکت (ستون avg_response_hours روی جدول ticket_agent_report،
+  // که از کارت ۱۸۰۱۶ متابیس پر می‌شه). این عدد یکی برای کل کارشناسه (نه جدا برای هر رشته)،
+  // برای همین فقط یک‌بار، درست زیر مجموع تارگت، نمایش داده می‌شه
+  const avgResponseRow = data.find(r => r.avg_response_hours !== null && r.avg_response_hours !== undefined);
+  if (avgResponseRow) {
+    primaryHtml += `
+      <div class="ticket-primary-card secondary">
+        <div class="label">میانگین زمان پاسخگویی به تیکت</div>
+        <div class="value">${formatNumber(avgResponseRow.avg_response_hours)}<span class="unit"> ساعت</span></div>
+      </div>
+    `;
   }
 
   let bonusAmount = 0;
